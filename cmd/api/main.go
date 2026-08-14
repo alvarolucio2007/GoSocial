@@ -11,7 +11,7 @@ func main() {
 	cfg := config{
 		addr: env.GetString("ADDR", ":8080"),
 	}
-	store := store.NewPostgresStorage(nil)
+	store := store.NewPostgresStorage(nil) // nil for now...
 	app := &application{
 		cfg,
 		store,
