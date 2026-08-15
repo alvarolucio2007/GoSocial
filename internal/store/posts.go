@@ -20,6 +20,9 @@ type Post struct {
 type PostStore struct {
 	db *sql.DB
 }
+type PostRepository interface {
+	Create(ctx context.Context, post *Post) error
+}
 
 func (p *PostStore) Create(ctx context.Context, post *Post) error {
 	query := `INSERT INTO posts (content,title,user_id,tags)

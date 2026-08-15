@@ -17,6 +17,9 @@ type User struct {
 type UserStore struct {
 	db *sql.DB
 }
+type UserRepository interface {
+	Create(ctx context.Context, user *User) error
+}
 
 func (s *UserStore) Create(ctx context.Context, user *User) error {
 	query := `INSERT INTO users (username,email,password)
