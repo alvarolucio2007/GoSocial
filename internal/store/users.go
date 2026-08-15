@@ -40,7 +40,7 @@ func (s *UserStore) Read(ctx context.Context, idUser int) (*User, error) {
 	query := `SELECT id,username,email,password,created_at FROM usuario WHERE id = $1`
 	var u User
 	err := s.db.QueryRowContext(ctx, query, idUser).Scan(&u.ID, &u.Username, &u.Email, &u.Password, &u.CreatedAt)
-	if errors.Is(err, ErrUserNotFound) {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrUserNotFound
 	}
 	if err != nil {
