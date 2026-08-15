@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
@@ -33,8 +34,13 @@ func (s *PostStore) Create(ctx context.Context, post *Post) error {
 	query := `INSERT INTO posts (content,title,user_id,tags)
 									VALUES ($1,$2,$3,$4) RETURNING id,created_at,updated_at`
 	tags := pgtype.Array[string]{
-		Elements: post.Tags,
+		Elements: []string{},
 		Valid:    true,
+	}
+	if post.Tags != nil {
+		tags.Elements = post.Tags
+	} else {
+		post.Tags = []string{}
 	}
 	if err := s.db.QueryRowContext(ctx, query, post.Content, post.Title, post.UserID, tags).
 		Scan(&post.ID, &post.CreatedAt, &post.UpdatedAt); err != nil {
@@ -48,15 +54,15 @@ var ErrPostNotFound = errors.New("post not found")
 func (s *PostStore) Read(ctx context.Context, idPost int) (*Post, error) {
 	query := `SELECT id,content,title,user_id,tags,created_at,updated_at FROM posts WHERE id = $1`
 	var p Post
-	var tags pgtype.Array[string]
-	err := s.db.QueryRowContext(ctx, query, idPost).Scan(&p.ID, &p.Content, &p.Title, &p.UserID, &tags, &p.CreatedAt, &p.UpdatedAt)
+	var tagsBytes []byte
+	err := s.db.QueryRowContext(ctx, query, idPost).Scan(&p.ID, &p.Content, &p.Title, &p.UserID, &tagsBytes, &p.CreatedAt, &p.UpdatedAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrPostNotFound
 	}
 	if err != nil {
 		return nil, err
 	}
-	p.Tags = tags.Elements
+	p.Tags = parseTags(tagsBytes)
 	return &p, nil
 }
 
@@ -102,4 +108,15 @@ func (s *PostStore) Delete(ctx context.Context, idPost int) error {
 		return ErrPostNotFound
 	}
 	return nil
+}
+
+func parseTags(b []byte) []string {
+	if len(b) == 0 || string(b) == "{}" || string(b) == "NULL" {
+		return []string{}
+	}
+	s := strings.Trim(string(b), "{}")
+	if s == "" {
+		return []string{}
+	}
+	return strings.Split(s, ",")
 }
