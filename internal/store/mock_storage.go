@@ -8,6 +8,6 @@ type MockStorage struct {
 func NewMockStorage(mapPost map[int]*Post, mapUser map[int]*User) MockStorage {
 	return MockStorage{
 		PostRepository: &MockPostRepository{posts: mapPost},
-		UserRepository: nil,
+		UserRepository: &MockUserRepository{users: mapUser},
 	}
 }
