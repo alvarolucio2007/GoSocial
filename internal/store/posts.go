@@ -3,8 +3,10 @@ package store
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgtype"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
@@ -20,12 +22,84 @@ type Post struct {
 type PostStore struct {
 	db *sql.DB
 }
+type PostRepository interface {
+	Create(ctx context.Context, post *Post) error
+	Read(ctx context.Context, idPost int) (*Post, error)
+	Update(ctx context.Context, post *Post) error
+	Delete(ctx context.Context, idPost int) error
+}
 
-func (p *PostStore) Create(ctx context.Context, post *Post) error {
+func (s *PostStore) Create(ctx context.Context, post *Post) error {
 	query := `INSERT INTO posts (content,title,user_id,tags)
 									VALUES ($1,$2,$3,$4) RETURNING id,created_at,updated_at`
-	if err := p.db.QueryRowContext(ctx, query, post.Content, post.Title, post.UserID, post.Tags).Scan(&post.ID, &post.Content, &post.UpdatedAt); err != nil {
+	tags := pgtype.Array[string]{
+		Elements: post.Tags,
+		Valid:    true,
+	}
+	if err := s.db.QueryRowContext(ctx, query, post.Content, post.Title, post.UserID, tags).
+		Scan(&post.ID, &post.CreatedAt, &post.UpdatedAt); err != nil {
 		return err
+	}
+	return nil
+}
+
+var ErrPostNotFound = errors.New("post not found")
+
+func (s *PostStore) Read(ctx context.Context, idPost int) (*Post, error) {
+	query := `SELECT id,content,title,user_id,tags,created_at,updated_at FROM posts WHERE id = $1`
+	var p Post
+	var tags pgtype.Array[string]
+	err := s.db.QueryRowContext(ctx, query, idPost).Scan(&p.ID, &p.Content, &p.Title, &p.UserID, &tags, &p.CreatedAt, &p.UpdatedAt)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrPostNotFound
+	}
+	if err != nil {
+		return nil, err
+	}
+	p.Tags = tags.Elements
+	return &p, nil
+}
+
+func (s *PostStore) Update(ctx context.Context, post *Post) error {
+	query := `UPDATE posts
+	SET
+		content=COALESCE(NULLIF($1,''),content),
+		title=COALESCE(NULLIF($2,''),title),
+		tags=COALESCE(NULLIF($3,''),tags),
+		updated_at=$4
+	WHERE id = $5
+	`
+	updateTime := time.Now()
+	tags := pgtype.Array[string]{
+		Elements: post.Tags,
+		Valid:    true,
+	}
+	res, err := s.db.ExecContext(ctx, query, post.Content, post.Title, tags, updateTime, post.ID)
+	if err != nil {
+		return err
+	}
+	count, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if count == 0 {
+		return ErrPostNotFound
+	}
+	return nil
+}
+
+func (s *PostStore) Delete(ctx context.Context, idPost int) error {
+	query := `DELETE FROM posts WHERE id=$1`
+	res, err := s.db.ExecContext(ctx, query, idPost)
+	if err != nil {
+		return err
+	}
+	count, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if count == 0 {
+		return ErrPostNotFound
 	}
 	return nil
 }
