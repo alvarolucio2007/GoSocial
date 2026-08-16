@@ -18,7 +18,7 @@ type CreatePostPayload struct {
 func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request) {
 	var payload CreatePostPayload
 	if err := readJSON(w, r, &payload); err != nil {
-		writeJSONError(w, http.StatusBadRequest, err.Error())
+		_ = writeJSONError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 	post := &store.Post{
@@ -32,11 +32,11 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 	}
 	ctx := r.Context()
 	if err := app.storage.Posts.Create(ctx, post); err != nil {
-		writeJSONError(w, http.StatusInternalServerError, err.Error())
+		_ = writeJSONError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 	if err := writeJSON(w, http.StatusCreated, post); err != nil {
-		writeJSONError(w, http.StatusInternalServerError, err.Error())
+		_ = writeJSONError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 }
@@ -45,7 +45,7 @@ func (app *application) readPostHandler(w http.ResponseWriter, r *http.Request) 
 	idParam := chi.URLParam(r, "postID")
 	id, err := strconv.ParseInt(idParam, 10, 64)
 	if err != nil {
-		writeJSONError(w, http.StatusBadRequest, err.Error())
+		_ = writeJSONError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 	ctx := r.Context()
@@ -53,14 +53,14 @@ func (app *application) readPostHandler(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		switch {
 		case errors.Is(err, store.ErrPostNotFound):
-			writeJSONError(w, http.StatusNotFound, err.Error())
+			_ = writeJSONError(w, http.StatusNotFound, err.Error())
 		default:
-			writeJSONError(w, http.StatusInternalServerError, err.Error())
+			_ = writeJSONError(w, http.StatusInternalServerError, err.Error())
 		}
 		return
 	}
 	if err := writeJSON(w, http.StatusCreated, &post); err != nil {
-		writeJSONError(w, http.StatusInternalServerError, err.Error())
+		_ = writeJSONError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 }
