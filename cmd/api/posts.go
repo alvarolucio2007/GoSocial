@@ -31,7 +31,7 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 		post.Tags = []string{}
 	}
 	ctx := r.Context()
-	if err := app.storage.PostRepository.Create(ctx, post); err != nil {
+	if err := app.storage.Posts.Create(ctx, post); err != nil {
 		writeJSONError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -49,7 +49,7 @@ func (app *application) readPostHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	ctx := r.Context()
-	post, err := app.storage.PostRepository.Read(ctx, int(id))
+	post, err := app.storage.Posts.Read(ctx, int(id))
 	if err != nil {
 		switch {
 		case errors.Is(err, store.ErrPostNotFound):
