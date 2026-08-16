@@ -22,6 +22,12 @@ func TestPOSTPostHandler(t *testing.T) {
 	w := httptest.NewRecorder()
 	app.createPostHandler(w, req)
 	require.Equal(t, http.StatusCreated, w.Code)
+	var post store.Post
+	err := json.NewDecoder(w.Body).Decode(&post)
+	require.NoError(t, err)
+	require.Equal(t, "TEST", post.Title)
+	require.Equal(t, "Content", post.Content)
+	require.Equal(t, []string{"test"}, post.Tags)
 }
 
 func TestGetPostHandler(t *testing.T) {
