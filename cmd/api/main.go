@@ -33,7 +33,12 @@ func main() {
 	if err != nil {
 		log.Panicf("PANIC: couldn't connect to database, error: %v", err)
 	}
-	defer db.Close()
+	defer func() {
+		if err := db.Close(); err != nil {
+			log.Printf("couldn't close the database: %v\n", err)
+		}
+	}()
+
 	store := store.NewPostgresStorage(db)
 	app := &application{
 		cfg,
