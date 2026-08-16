@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestPOSTPostHandler(t *testing.T) {
+func TestCreatePostHandler(t *testing.T) {
 	mockStorage := store.NewMockStorage(map[int]*store.Post{}, nil)
 	app := &application{storage: store.Storage(mockStorage)}
 	body := `{"title":"TEST","content":"Content","tags":["test"]}`
@@ -30,7 +30,7 @@ func TestPOSTPostHandler(t *testing.T) {
 	require.Equal(t, []string{"test"}, post.Tags)
 }
 
-func TestGetPostHandler(t *testing.T) {
+func TestReadPostHandler(t *testing.T) {
 	mockStorage := store.NewMockStorage(
 		map[int]*store.Post{
 			1: {ID: 1, Title: "Test", Content: "Content"},
