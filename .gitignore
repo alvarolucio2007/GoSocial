@@ -27,9 +27,9 @@ go.work.sum
 # env file
 #.env
 cmd/api/tmp/
-tmp
+tmp/
 bin/
 
 # Editor/IDE
-# .idea/
-# .vscode/
+.idea/
+.vscode/
