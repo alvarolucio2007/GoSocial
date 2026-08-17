@@ -43,12 +43,17 @@ func (app *application) mount() http.Handler {
 			r.Post("/", app.createPostHandler)
 			r.Route("/{postID}", func(r chi.Router) {
 				r.Get("/", app.readPostHandler)
-				r.Delete("/", app.deletePostHandler)
 				r.Put("/", app.updatePostHandler)
+				r.Delete("/", app.deletePostHandler)
 			})
 		})
 		r.Route("/users", func(r chi.Router) {
 			r.Post("/", app.createUserHandler)
+			r.Route("/{userID}", func(r chi.Router) {
+				r.Get("/", app.readUserHandler)
+				r.Delete("/", app.deleteUserHandler)
+				r.Put("/", app.updateUserHandler)
+			})
 		})
 	})
 	return r
