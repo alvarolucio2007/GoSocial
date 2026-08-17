@@ -13,6 +13,7 @@ type CreatePostPayload struct {
 	Title   string   `json:"title"`
 	Content string   `json:"content"`
 	Tags    []string `json:"tags"`
+	UserID  int      `json:"user_id"`
 }
 
 func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request) {
@@ -25,7 +26,8 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 		Title:   payload.Title,
 		Content: payload.Content,
 		Tags:    payload.Tags,
-		UserID:  1, // change after auth
+		UserID:  int64(payload.UserID),
+		// change after auth
 	}
 	if post.Tags == nil {
 		post.Tags = []string{}
