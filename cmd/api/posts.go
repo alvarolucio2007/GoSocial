@@ -95,7 +95,7 @@ func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request
 		}
 		return
 	}
-	if err := writeJSON(w, http.StatusCreated, &post); err != nil {
+	if err := writeJSON(w, http.StatusOK, &post); err != nil {
 		_ = writeJSONError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -118,8 +118,5 @@ func (app *application) deletePostHandler(w http.ResponseWriter, r *http.Request
 		}
 		return
 	}
-	if err := writeJSON(w, http.StatusOK, id); err != nil {
-		_ = writeJSONError(w, http.StatusInternalServerError, err.Error())
-		return
-	}
+	w.WriteHeader(http.StatusNoContent)
 }
