@@ -76,7 +76,8 @@ func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request
 	}
 	var payload store.Post
 	if err := readJSON(w, r, &payload); err != nil {
-		writeJSONError(w, http.StatusBadRequest, err.Error())
+		_ = writeJSONError(w, http.StatusBadRequest, err.Error())
+		return
 	}
 	post := &store.Post{
 		ID:      id,
@@ -95,6 +96,29 @@ func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 	if err := writeJSON(w, http.StatusCreated, &post); err != nil {
+		_ = writeJSONError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+}
+
+func (app *application) deletePostHandler(w http.ResponseWriter, r *http.Request) {
+	idParam := chi.URLParam(r, "postID")
+	id, err := strconv.ParseInt(idParam, 10, 64)
+	if err != nil {
+		_ = writeJSONError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	ctx := r.Context()
+	if err := app.storage.Posts.Delete(ctx, int(id)); err != nil {
+		switch {
+		case errors.Is(err, store.ErrPostNotFound):
+			_ = writeJSONError(w, http.StatusNotFound, err.Error())
+		default:
+			_ = writeJSONError(w, http.StatusInternalServerError, err.Error())
+		}
+		return
+	}
+	if err := writeJSON(w, http.StatusOK, id); err != nil {
 		_ = writeJSONError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
