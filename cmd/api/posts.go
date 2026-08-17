@@ -66,3 +66,36 @@ func (app *application) readPostHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 }
+
+func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request) {
+	idParam := chi.URLParam(r, "postID")
+	id, err := strconv.ParseInt(idParam, 10, 64)
+	if err != nil {
+		_ = writeJSONError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	var payload store.Post
+	if err := readJSON(w, r, &payload); err != nil {
+		writeJSONError(w, http.StatusBadRequest, err.Error())
+	}
+	post := &store.Post{
+		ID:      id,
+		Title:   payload.Title,
+		Content: payload.Content,
+		Tags:    payload.Tags,
+	}
+	ctx := r.Context()
+	if err := app.storage.Posts.Update(ctx, post); err != nil {
+		switch {
+		case errors.Is(err, store.ErrPostNotFound):
+			_ = writeJSONError(w, http.StatusNotFound, err.Error())
+		default:
+			_ = writeJSONError(w, http.StatusInternalServerError, err.Error())
+		}
+		return
+	}
+	if err := writeJSON(w, http.StatusCreated, &post); err != nil {
+		_ = writeJSONError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+}
