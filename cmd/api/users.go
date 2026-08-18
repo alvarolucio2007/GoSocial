@@ -10,16 +10,19 @@ import (
 )
 
 type CreateUserPayload struct {
-	Username string `json:"username"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Username string `json:"username" validate:"required,max=100"`
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required"`
 }
 
 func (app *application) createUserHandler(w http.ResponseWriter, r *http.Request) {
 	var payload CreateUserPayload
 	if err := readJSON(w, r, &payload); err != nil {
-		_ = writeJSONError(w, http.StatusBadRequest, err.Error())
+		app.badRequestError(w, r, err)
 		return
+	}
+	if err := Validate.Struct(payload); err != nil {
+		app.badRequestError(w, r, err)
 	}
 	user := &store.User{
 		Username: payload.Username,
@@ -28,11 +31,11 @@ func (app *application) createUserHandler(w http.ResponseWriter, r *http.Request
 	}
 	ctx := r.Context()
 	if err := app.storage.Users.Create(ctx, user); err != nil {
-		_ = writeJSONError(w, http.StatusInternalServerError, err.Error())
+		app.internalServerError(w, r, err)
 		return
 	}
 	if err := writeJSON(w, http.StatusCreated, user); err != nil {
-		_ = writeJSONError(w, http.StatusInternalServerError, err.Error())
+		app.internalServerError(w, r, err)
 		return
 	}
 }
@@ -41,7 +44,7 @@ func (app *application) readUserHandler(w http.ResponseWriter, r *http.Request) 
 	idParam := chi.URLParam(r, "userID")
 	id, err := strconv.ParseInt(idParam, 10, 64)
 	if err != nil {
-		_ = writeJSONError(w, http.StatusBadRequest, err.Error())
+		app.badRequestError(w, r, err)
 		return
 	}
 	ctx := r.Context()
@@ -49,35 +52,38 @@ func (app *application) readUserHandler(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		switch {
 		case errors.Is(err, store.ErrUserNotFound):
-			_ = writeJSONError(w, http.StatusNotFound, err.Error())
+			app.notFoundError(w, r, err)
 		default:
-			_ = writeJSONError(w, http.StatusInternalServerError, err.Error())
+			app.internalServerError(w, r, err)
 		}
 		return
 	}
 	if err := writeJSON(w, http.StatusOK, &user); err != nil {
-		_ = writeJSONError(w, http.StatusInternalServerError, err.Error())
+		app.internalServerError(w, r, err)
 		return
 	}
 }
 
 type UpdateUserPayload struct {
-	Username string `json:"username"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Username string `json:"username" validate:"required,max=100"`
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required"`
 }
 
 func (app *application) updateUserHandler(w http.ResponseWriter, r *http.Request) {
 	idParam := chi.URLParam(r, "userID")
 	id, err := strconv.ParseInt(idParam, 10, 64)
 	if err != nil {
-		_ = writeJSONError(w, http.StatusBadRequest, err.Error())
+		app.badRequestError(w, r, err)
 		return
 	}
 	var payload UpdateUserPayload
 	if err := readJSON(w, r, &payload); err != nil {
-		_ = writeJSONError(w, http.StatusBadRequest, err.Error())
+		app.badRequestError(w, r, err)
 		return
+	}
+	if err := Validate.Struct(payload); err != nil {
+		app.badRequestError(w, r, err)
 	}
 	user := &store.User{
 		ID:       id,
@@ -89,14 +95,14 @@ func (app *application) updateUserHandler(w http.ResponseWriter, r *http.Request
 	if err := app.storage.Users.Update(ctx, user); err != nil {
 		switch {
 		case errors.Is(err, store.ErrUserNotFound):
-			_ = writeJSONError(w, http.StatusNotFound, err.Error())
+			app.notFoundError(w, r, err)
 		default:
-			_ = writeJSONError(w, http.StatusInternalServerError, err.Error())
+			app.internalServerError(w, r, err)
 		}
 		return
 	}
 	if err := writeJSON(w, http.StatusOK, &user); err != nil {
-		_ = writeJSONError(w, http.StatusInternalServerError, err.Error())
+		app.internalServerError(w, r, err)
 		return
 	}
 }
@@ -105,16 +111,16 @@ func (app *application) deleteUserHandler(w http.ResponseWriter, r *http.Request
 	idParam := chi.URLParam(r, "userID")
 	id, err := strconv.ParseInt(idParam, 10, 64)
 	if err != nil {
-		_ = writeJSONError(w, http.StatusBadRequest, err.Error())
+		app.badRequestError(w, r, err)
 		return
 	}
 	ctx := r.Context()
 	if err := app.storage.Users.Delete(ctx, int(id)); err != nil {
 		switch {
 		case errors.Is(err, store.ErrPostNotFound):
-			_ = writeJSONError(w, http.StatusNotFound, err.Error())
+			app.notFoundError(w, r, err)
 		default:
-			_ = writeJSONError(w, http.StatusInternalServerError, err.Error())
+			app.internalServerError(w, r, err)
 		}
 		return
 	}
