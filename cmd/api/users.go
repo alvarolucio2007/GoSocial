@@ -61,6 +61,12 @@ func (app *application) readUserHandler(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
+type UpdateUserPayload struct {
+	Username string `json:"username"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
 func (app *application) updateUserHandler(w http.ResponseWriter, r *http.Request) {
 	idParam := chi.URLParam(r, "userID")
 	id, err := strconv.ParseInt(idParam, 10, 64)
@@ -68,7 +74,7 @@ func (app *application) updateUserHandler(w http.ResponseWriter, r *http.Request
 		_ = writeJSONError(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	var payload store.User
+	var payload UpdateUserPayload
 	if err := readJSON(w, r, &payload); err != nil {
 		_ = writeJSONError(w, http.StatusBadRequest, err.Error())
 		return
