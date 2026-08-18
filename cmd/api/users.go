@@ -10,9 +10,9 @@ import (
 )
 
 type CreateUserPayload struct {
-	Username string
-	Email    string
-	Password string
+	Username string `json:"username"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
 func (app *application) createUserHandler(w http.ResponseWriter, r *http.Request) {
@@ -38,7 +38,7 @@ func (app *application) createUserHandler(w http.ResponseWriter, r *http.Request
 }
 
 func (app *application) readUserHandler(w http.ResponseWriter, r *http.Request) {
-	idParam := chi.URLParam(r, "postID")
+	idParam := chi.URLParam(r, "userID")
 	id, err := strconv.ParseInt(idParam, 10, 64)
 	if err != nil {
 		_ = writeJSONError(w, http.StatusBadRequest, err.Error())
@@ -55,7 +55,7 @@ func (app *application) readUserHandler(w http.ResponseWriter, r *http.Request) 
 		}
 		return
 	}
-	if err := writeJSON(w, http.StatusFound, &user); err != nil {
+	if err := writeJSON(w, http.StatusOK, &user); err != nil {
 		_ = writeJSONError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
