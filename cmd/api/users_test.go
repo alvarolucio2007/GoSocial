@@ -14,7 +14,7 @@ import (
 )
 
 func TestCreateUserHandler(t *testing.T) {
-	mockStorage := store.NewMockStorage(nil, map[int]*store.User{})
+	mockStorage := store.NewMockStorage(nil, map[int]*store.User{}, nil)
 	app := &application{storage: store.Storage(mockStorage)}
 	body := `{"username":"Test","email":"test@email.com","password":"password"}`
 	req := httptest.NewRequest("POST", "/v1/", strings.NewReader(body))
@@ -30,7 +30,7 @@ func TestCreateUserHandler(t *testing.T) {
 }
 
 func TestReadUserHandler(t *testing.T) {
-	mockStorage := store.NewMockStorage(nil, map[int]*store.User{1: {ID: 1, Username: "Test", Email: "Test@gmail.com", Password: "password"}})
+	mockStorage := store.NewMockStorage(nil, map[int]*store.User{1: {ID: 1, Username: "Test", Email: "Test@gmail.com", Password: "password"}}, nil)
 	app := &application{storage: store.Storage(mockStorage)}
 	req := httptest.NewRequest("GET", "/v1/users/1", nil)
 	rctx := chi.NewRouteContext()
@@ -49,9 +49,9 @@ func TestReadUserHandler(t *testing.T) {
 func TestEditUserHandler(t *testing.T) {
 	mockStorage := store.NewMockStorage(nil, map[int]*store.User{
 		1: {ID: 1, Username: "Test", Email: "test@gmail.com", Password: "..."},
-	})
+	}, nil)
 	app := &application{storage: store.Storage(mockStorage)}
-	body := `{"username":"TEST2","email":"test2@gmail.com"}`
+	body := `{"username":"TEST2","email":"test2@gmail.com","password":"12345"}`
 	req := httptest.NewRequest("PUT", "/v1/users/1", strings.NewReader(body))
 	rctx := chi.NewRouteContext()
 	rctx.URLParams.Add("userID", "1")
@@ -64,13 +64,14 @@ func TestEditUserHandler(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "TEST2", user.Username)
 	require.Equal(t, "test2@gmail.com", user.Email)
+	require.Equal(t, "12345", user.Password)
 }
 
 func TestDeleteUserHandler(t *testing.T) {
 	mockStorage := store.NewMockStorage(nil,
 		map[int]*store.User{
 			1: {ID: 1, Username: "TEST", Email: "TEST@GMAIL.COM"},
-		})
+		}, nil)
 	app := &application{storage: store.Storage(mockStorage)}
 	req := httptest.NewRequest("DELETE", "/v1/users/1", nil)
 	rctx := chi.NewRouteContext()

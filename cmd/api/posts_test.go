@@ -14,9 +14,9 @@ import (
 )
 
 func TestCreatePostHandler(t *testing.T) {
-	mockStorage := store.NewMockStorage(map[int]*store.Post{}, nil)
+	mockStorage := store.NewMockStorage(map[int]*store.Post{}, nil, nil)
 	app := &application{storage: store.Storage(mockStorage)}
-	body := `{"title":"TEST","content":"Content","tags":["test"]}`
+	body := `{"title":"TEST","content":"Content","tags":["test"],"user_id":1}`
 	req := httptest.NewRequest("POST", "/v1/posts", strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
@@ -35,17 +35,15 @@ func TestReadPostHandler(t *testing.T) {
 		map[int]*store.Post{
 			1: {ID: 1, Title: "Test", Content: "Content"},
 		},
-		nil,
+		nil, nil,
 	)
 	app := &application{storage: store.Storage(mockStorage)}
 	req := httptest.NewRequest("GET", "/v1/posts/1", nil)
-	rctx := chi.NewRouteContext()
-	rctx.URLParams.Add("postID", "1")
-	req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
+	post := &store.Post{ID: 1, Title: "Test", Content: "Content"}
+	req = req.WithContext(context.WithValue(req.Context(), postCtx, post))
 	w := httptest.NewRecorder()
 	app.readPostHandler(w, req)
 	require.Equal(t, w.Code, http.StatusCreated)
-	var post store.Post
 	err := json.NewDecoder(w.Body).Decode(&post)
 	require.NoError(t, err)
 	require.Equal(t, "Test", post.Title)
@@ -55,10 +53,12 @@ func TestReadPostHandler(t *testing.T) {
 func TestUpdatePostHandler(t *testing.T) {
 	mockStorage := store.NewMockStorage(map[int]*store.Post{
 		1: {ID: 1, Title: "Test", Content: "Content"},
-	}, nil)
+	}, nil, nil)
 	app := &application{storage: store.Storage(mockStorage)}
 	body := `{"title":"TEST2","content":"CONTENT2","tags":["test2","test3"]}`
-	req := httptest.NewRequest("PUT", "/v1/posts/1", strings.NewReader(body))
+	req := httptest.NewRequest("GET", "/v1/posts/1", strings.NewReader(body))
+	post := &store.Post{ID: 1, Title: "TEST2", Content: "CONTENT2", Tags: []string{"test2", "test3"}}
+	req = req.WithContext(context.WithValue(req.Context(), postCtx, post))
 	rctx := chi.NewRouteContext()
 	rctx.URLParams.Add("postID", "1")
 	req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
@@ -75,16 +75,22 @@ func TestUpdatePostHandler(t *testing.T) {
 func TestDeletePostHandler(t *testing.T) {
 	mockStorage := store.NewMockStorage(map[int]*store.Post{
 		1: {ID: 1, Title: "Test", Content: "Content"},
-	}, nil)
+	}, nil, nil)
 	app := &application{storage: store.Storage(mockStorage)}
+
 	req := httptest.NewRequest("DELETE", "/v1/posts/1", nil)
 	rctx := chi.NewRouteContext()
 	rctx.URLParams.Add("postID", "1")
 	req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
-	req.Header.Set("Content-Type", "application/json")
+
 	w := httptest.NewRecorder()
-	app.deletePostHandler(w, req)
+
+	// Envolve com o middleware
+	handler := app.postContextMiddleware(http.HandlerFunc(app.deletePostHandler))
+	handler.ServeHTTP(w, req)
+
 	require.Equal(t, http.StatusNoContent, w.Code)
+
 	post, err := mockStorage.Posts.Read(context.TODO(), 1)
 	require.ErrorIs(t, err, store.ErrPostNotFound)
 	require.Nil(t, post)
