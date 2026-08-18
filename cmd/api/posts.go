@@ -27,7 +27,6 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 		Content: payload.Content,
 		Tags:    payload.Tags,
 		UserID:  int64(payload.UserID),
-		// change after auth
 	}
 	if post.Tags == nil {
 		post.Tags = []string{}
