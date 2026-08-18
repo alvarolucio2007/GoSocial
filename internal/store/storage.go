@@ -5,13 +5,15 @@ import (
 )
 
 type Storage struct {
-	Posts PostRepository
-	Users UserRepository
+	Posts    PostRepository
+	Users    UserRepository
+	Comments CommentRepository
 }
 
 func NewPostgresStorage(db *sql.DB) Storage {
 	return Storage{
-		Posts: &PostStore{db: db},
-		Users: &UserStore{db: db},
+		Posts:    &PostStore{db: db},
+		Users:    &UserStore{db: db},
+		Comments: &CommentStore{db: db},
 	}
 }
