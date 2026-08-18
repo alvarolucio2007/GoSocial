@@ -37,7 +37,7 @@ func (s *UserStore) Create(ctx context.Context, user *User) error {
 var ErrUserNotFound = errors.New("user not found")
 
 func (s *UserStore) Read(ctx context.Context, idUser int) (*User, error) {
-	query := `SELECT id,username,email,password,created_at FROM usuario WHERE id = $1`
+	query := `SELECT id,username,email,password,created_at FROM users WHERE id = $1`
 	var u User
 	err := s.db.QueryRowContext(ctx, query, idUser).Scan(&u.ID, &u.Username, &u.Email, &u.Password, &u.CreatedAt)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -54,7 +54,7 @@ func (s *UserStore) Update(ctx context.Context, user *User) error {
 	SET	
 		username=COALESCE(NULLIF($1,''),username),
 		email=COALESCE(NULLIF($2,''),email),
-		password=COALESCE(NULLIF($3,''),password)
+		password=COALESCE(NULLIF($3,'\x'::bytea),password)
 	WHERE id=$4
 	`
 	res, err := s.db.ExecContext(ctx, query, user.Username, user.Email, user.Password, user.ID)
