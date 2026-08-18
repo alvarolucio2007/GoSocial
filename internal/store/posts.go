@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"log"
 	"strings"
 	"time"
 
@@ -69,18 +70,15 @@ func (s *PostStore) Read(ctx context.Context, idPost int) (*Post, error) {
 func (s *PostStore) Update(ctx context.Context, post *Post) error {
 	query := `UPDATE posts
 	SET
-		content=COALESCE(NULLIF($1,''),content),
-		title=COALESCE(NULLIF($2,''),title),
-		tags=COALESCE(NULLIF($3,''),tags),
-		updated_at=$4
+		title = COALESCE(NULLIF($1, ''), title, ''),
+		content = COALESCE(NULLIF($2, ''), content, ''),
+		tags = COALESCE(NULLIF($3::text[], '{}'::text[]), tags),
+		updated_at = $4
 	WHERE id = $5
 	`
 	updateTime := time.Now()
-	tags := pgtype.Array[string]{
-		Elements: post.Tags,
-		Valid:    true,
-	}
-	res, err := s.db.ExecContext(ctx, query, post.Content, post.Title, tags, updateTime, post.ID)
+	log.Println(post.Tags)
+	res, err := s.db.ExecContext(ctx, query, post.Title, post.Content, post.Tags, updateTime, post.ID)
 	if err != nil {
 		return err
 	}
