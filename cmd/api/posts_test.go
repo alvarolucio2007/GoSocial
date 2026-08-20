@@ -22,12 +22,14 @@ func TestCreatePostHandler(t *testing.T) {
 	w := httptest.NewRecorder()
 	app.createPostHandler(w, req)
 	require.Equal(t, http.StatusCreated, w.Code)
-	var post store.Post
+	var post struct {
+		Data store.Post `json:"data"`
+	}
 	err := json.NewDecoder(w.Body).Decode(&post)
 	require.NoError(t, err)
-	require.Equal(t, "TEST", post.Title)
-	require.Equal(t, "Content", post.Content)
-	require.Equal(t, []string{"test"}, post.Tags)
+	require.Equal(t, "TEST", post.Data.Title)
+	require.Equal(t, "Content", post.Data.Content)
+	require.Equal(t, []string{"test"}, post.Data.Tags)
 }
 
 func TestReadPostHandler(t *testing.T) {
