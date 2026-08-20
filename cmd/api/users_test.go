@@ -22,11 +22,13 @@ func TestCreateUserHandler(t *testing.T) {
 	w := httptest.NewRecorder()
 	app.createUserHandler(w, req)
 	require.Equal(t, http.StatusCreated, w.Code)
-	var user store.User
+	var user struct {
+		Data store.User `json:"data"`
+	}
 	err := json.NewDecoder(w.Body).Decode(&user)
 	require.NoError(t, err)
-	require.Equal(t, "Test", user.Username)
-	require.Equal(t, "test@email.com", user.Email)
+	require.Equal(t, "Test", user.Data.Username)
+	require.Equal(t, "test@email.com", user.Data.Email)
 }
 
 func TestReadUserHandler(t *testing.T) {
@@ -39,11 +41,13 @@ func TestReadUserHandler(t *testing.T) {
 	w := httptest.NewRecorder()
 	app.readUserHandler(w, req)
 	require.Equal(t, http.StatusOK, w.Code)
-	var user store.User
+	var user struct {
+		Data store.User `json:"data"`
+	}
 	err := json.NewDecoder(w.Body).Decode(&user)
 	require.NoError(t, err)
-	require.Equal(t, "Test", user.Username)
-	require.Equal(t, "Test@gmail.com", user.Email)
+	require.Equal(t, "Test", user.Data.Username)
+	require.Equal(t, "Test@gmail.com", user.Data.Email)
 }
 
 func TestEditUserHandler(t *testing.T) {
