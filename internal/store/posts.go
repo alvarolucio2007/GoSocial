@@ -20,6 +20,7 @@ type Post struct {
 	Tags      []string  `json:"tags"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
+	Version   int       `json:"version"`
 	Comments  []Comment `json:"comments"`
 }
 type PostStore struct {
@@ -35,6 +36,8 @@ type PostRepository interface {
 func (s *PostStore) Create(ctx context.Context, post *Post) error {
 	query := `INSERT INTO posts (content,title,user_id,tags)
 									VALUES ($1,$2,$3,$4) RETURNING id,created_at,updated_at`
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeout)
+	defer cancel()
 	tags := pgtype.Array[string]{
 		Elements: []string{},
 		Valid:    true,
@@ -54,10 +57,12 @@ func (s *PostStore) Create(ctx context.Context, post *Post) error {
 var ErrPostNotFound = errors.New("post not found")
 
 func (s *PostStore) Read(ctx context.Context, idPost int) (*Post, error) {
-	query := `SELECT id,content,title,user_id,tags,created_at,updated_at FROM posts WHERE id = $1`
+	query := `SELECT id,content,title,user_id,tags,created_at,updated_at ,version FROM posts WHERE id = $1`
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeout)
+	defer cancel()
 	var p Post
 	var tagsBytes []byte
-	err := s.db.QueryRowContext(ctx, query, idPost).Scan(&p.ID, &p.Content, &p.Title, &p.UserID, &tagsBytes, &p.CreatedAt, &p.UpdatedAt)
+	err := s.db.QueryRowContext(ctx, query, idPost).Scan(&p.ID, &p.Content, &p.Title, &p.UserID, &tagsBytes, &p.CreatedAt, &p.UpdatedAt, &p.Version)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrPostNotFound
 	}
@@ -74,21 +79,22 @@ func (s *PostStore) Update(ctx context.Context, post *Post) error {
 		title = COALESCE(NULLIF($1, ''), title, ''),
 		content = COALESCE(NULLIF($2, ''), content, ''),
 		tags = COALESCE(NULLIF($3::text[], '{}'::text[]), tags),
-		updated_at = $4
-	WHERE id = $5
+		updated_at = $4, version=version+1
+	WHERE id = $5 AND version = $6;
+	RETURNING version
 	`
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
 	updateTime := time.Now()
 	log.Println(post.Tags)
-	res, err := s.db.ExecContext(ctx, query, post.Title, post.Content, post.Tags, updateTime, post.ID)
+	err := s.db.QueryRowContext(ctx, query, post.Title, post.Content, post.Tags, updateTime, post.ID, post.Version).Scan(&post.Version)
 	if err != nil {
-		return err
-	}
-	count, err := res.RowsAffected()
-	if err != nil {
-		return err
-	}
-	if count == 0 {
-		return ErrPostNotFound
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return ErrPostNotFound
+		default:
+			return err
+		}
 	}
 	return nil
 }
