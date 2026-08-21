@@ -4,11 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"log"
 	"strings"
 	"time"
 
-	"github.com/jackc/pgx/v5/pgtype"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
@@ -38,16 +38,11 @@ func (s *PostStore) Create(ctx context.Context, post *Post) error {
 									VALUES ($1,$2,$3,$4) RETURNING id,created_at,updated_at`
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeout)
 	defer cancel()
-	tags := pgtype.Array[string]{
-		Elements: []string{},
-		Valid:    true,
+	tagsStr := "{}"
+	if len(post.Tags) > 0 {
+		tagsStr = fmt.Sprintf("{%s}", strings.Join(post.Tags, ","))
 	}
-	if post.Tags != nil {
-		tags.Elements = post.Tags
-	} else {
-		post.Tags = []string{}
-	}
-	if err := s.db.QueryRowContext(ctx, query, post.Content, post.Title, post.UserID, tags).
+	if err := s.db.QueryRowContext(ctx, query, post.Content, post.Title, post.UserID, tagsStr).
 		Scan(&post.ID, &post.CreatedAt, &post.UpdatedAt); err != nil {
 		return err
 	}
