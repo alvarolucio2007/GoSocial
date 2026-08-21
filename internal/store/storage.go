@@ -2,16 +2,21 @@ package store
 
 import (
 	"database/sql"
+	"time"
 )
 
 type Storage struct {
-	PostRepository
-	UserRepository
+	Posts    PostRepository
+	Users    UserRepository
+	Comments CommentRepository
 }
 
 func NewPostgresStorage(db *sql.DB) Storage {
 	return Storage{
-		PostRepository: &PostStore{db: db},
-		UserRepository: &UserStore{db: db},
+		Posts:    &PostStore{db: db},
+		Users:    &UserStore{db: db},
+		Comments: &CommentStore{db: db},
 	}
 }
+
+const QueryTimeout time.Duration = 5 * time.Second

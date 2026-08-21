@@ -1,4 +1,4 @@
-.PHONY: migrateup migratedown migration
+.PHONY: migrateup migratedown migration test seed
 MIGRATIONS_PATH=./cmd/migrate/migrations
 DB_URL=postgres://admin:admin@localhost/social?sslmode=disable
 migration:
@@ -7,3 +7,7 @@ migrateup:
 	migrate -path=$(MIGRATIONS_PATH) -database "$(DB_URL)" -verbose up
 migratedown:
 	migrate -path=$(MIGRATIONS_PATH) -database "$(DB_URL)" -verbose down
+test:
+		go test -v -cover -short ./...
+seed:
+	go run cmd/migrate/seed/main.go

@@ -9,6 +9,8 @@ import (
 	"github.com/alvarolucio2007/GoSocial/internal/store"
 )
 
+const version = "0.0.1"
+
 func main() {
 	maxOpenConn, _ := env.GetInt("DB_MAX_OPEN_CONN", 30)
 	maxIdleConn, _ := env.GetInt("DB_MAX_IDLE_CONN", 30)
@@ -25,12 +27,18 @@ func main() {
 			maxIdleConn: maxIdleConn,
 			maxIdleTime: maxIdleTime,
 		},
+		env: env.GetString("ENV", "development"),
 	}
 	db, err := db.New(cfg.db.addr, cfg.db.maxOpenConn, cfg.db.maxIdleConn, cfg.db.maxIdleTime)
 	if err != nil {
 		log.Panicf("PANIC: couldn't connect to database, error: %v", err)
 	}
-	defer db.Close()
+	defer func() {
+		if err := db.Close(); err != nil {
+			log.Printf("couldn't close the database: %v\n", err)
+		}
+	}()
+
 	store := store.NewPostgresStorage(db)
 	app := &application{
 		cfg,

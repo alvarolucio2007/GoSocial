@@ -1,0 +1,21 @@
+name: Run Tests
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+jobs:
+  build:
+    name: Test 
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up go 1.26
+        uses: actions/setup-go@v6
+        with:
+          go-version: ^1.26
+        id: go
+
+      - name: Check out code into Go module directory
+        uses: actions/checkout@v7
+      - name: Test
+        run: make test

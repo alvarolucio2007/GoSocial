@@ -28,6 +28,8 @@ type UserRepository interface {
 func (s *UserStore) Create(ctx context.Context, user *User) error {
 	query := `INSERT INTO users (username,email,password)
 									VALUES ($1,$2,$3) RETURNING id,created_at`
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeout)
+	defer cancel()
 	if err := s.db.QueryRowContext(ctx, query, user.Username, user.Email, user.Password).Scan(&user.ID, &user.CreatedAt); err != nil {
 		return err
 	}
@@ -37,8 +39,11 @@ func (s *UserStore) Create(ctx context.Context, user *User) error {
 var ErrUserNotFound = errors.New("user not found")
 
 func (s *UserStore) Read(ctx context.Context, idUser int) (*User, error) {
-	query := `SELECT id,username,email,password,created_at FROM usuario WHERE id = $1`
+	query := `SELECT id,username,email,password,created_at FROM users WHERE id = $1`
 	var u User
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeout)
+	defer cancel()
 	err := s.db.QueryRowContext(ctx, query, idUser).Scan(&u.ID, &u.Username, &u.Email, &u.Password, &u.CreatedAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrUserNotFound
@@ -54,9 +59,12 @@ func (s *UserStore) Update(ctx context.Context, user *User) error {
 	SET	
 		username=COALESCE(NULLIF($1,''),username),
 		email=COALESCE(NULLIF($2,''),email),
-		password=COALESCE(NULLIF($3,''),password)
+		password=COALESCE(NULLIF($3,'\x'::bytea),password)
 	WHERE id=$4
 	`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeout)
+	defer cancel()
 	res, err := s.db.ExecContext(ctx, query, user.Username, user.Email, user.Password, user.ID)
 	if err != nil {
 		return err
@@ -73,6 +81,8 @@ func (s *UserStore) Update(ctx context.Context, user *User) error {
 
 func (s *UserStore) Delete(ctx context.Context, idUser int) error {
 	query := `DELETE FROM users WHERE id=$1`
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeout)
+	defer cancel()
 	res, err := s.db.ExecContext(ctx, query, idUser)
 	if err != nil {
 		return err
