@@ -80,10 +80,10 @@ func (s *PostStore) Update(ctx context.Context, post *Post) error {
 		content = COALESCE(NULLIF($2, ''), content, ''),
 		tags = COALESCE(NULLIF($3::text[], '{}'::text[]), tags),
 		updated_at = $4, version=version+1
-	WHERE id = $5 AND version = $6;
+	WHERE id = $5 AND version = $6
 	RETURNING version
 	`
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeout)
 	defer cancel()
 	updateTime := time.Now()
 	log.Println(post.Tags)
@@ -101,6 +101,8 @@ func (s *PostStore) Update(ctx context.Context, post *Post) error {
 
 func (s *PostStore) Delete(ctx context.Context, idPost int) error {
 	query := `DELETE FROM posts WHERE id=$1`
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeout)
+	defer cancel()
 	res, err := s.db.ExecContext(ctx, query, idPost)
 	if err != nil {
 		return err
