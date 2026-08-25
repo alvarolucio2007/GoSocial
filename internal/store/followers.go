@@ -3,6 +3,8 @@ package store
 import (
 	"context"
 	"database/sql"
+
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 type Follower struct {
@@ -23,11 +25,17 @@ func (s *FollowerStore) Follow(ctx context.Context, followerID, userID int64) er
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeout)
 	defer cancel()
 	_, err := s.db.ExecContext(ctx, query, userID, followerID)
-	return err
+	if err != nil {
+		if pqErr, ok := err.(*pgconn.PgError); ok && pqErr.Code == "23505" {
+			return ErrConflict
+		}
+		return err
+	}
+	return nil
 }
 
 func (s *FollowerStore) Unfollow(ctx context.Context, followerID, userID int64) error {
-	query := `DELETE followers WHERE user_id=$1 AND follower_id=$2`
+	query := `DELETE FROM followers WHERE user_id=$1 AND follower_id=$2`
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeout)
 	defer cancel()
 	_, err := s.db.ExecContext(ctx, query, userID, followerID)
