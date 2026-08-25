@@ -1,9 +1,10 @@
 package store
 
 type MockStorage struct {
-	Posts    PostRepository
-	Users    UserRepository
-	Comments CommentRepository
+	Posts     PostRepository
+	Users     UserRepository
+	Comments  CommentRepository
+	Followers FollowerRepository
 }
 
 func NewMockStorage(mapPost map[int]*Post, mapUser map[int]*User, mapComments map[int]*Comment) MockStorage {
