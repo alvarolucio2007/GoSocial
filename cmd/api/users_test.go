@@ -37,7 +37,8 @@ func TestReadUserHandler(t *testing.T) {
 	req := httptest.NewRequest("GET", "/v1/users/1", nil)
 	rctx := chi.NewRouteContext()
 	rctx.URLParams.Add("userID", "1")
-	req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
+	userContext := &store.User{ID: 1, Username: "Test", Email: "Test@gmail.com", Password: "password"}
+	req = req.WithContext(context.WithValue(req.Context(), userCtx, userContext))
 	w := httptest.NewRecorder()
 	app.readUserHandler(w, req)
 	require.Equal(t, http.StatusOK, w.Code)

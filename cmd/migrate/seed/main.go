@@ -15,7 +15,13 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer conn.Close()
+	defer func() {
+		if err := conn.Close(); err != nil {
+			log.Printf("error while seeding: %v", err)
+		}
+	}()
 	store := store.NewPostgresStorage(conn)
-	db.Seed(store)
+	if err := db.Seed(store); err != nil {
+		log.Printf("error while seeding: %v", err)
+	}
 }

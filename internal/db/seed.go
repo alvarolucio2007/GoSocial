@@ -2,7 +2,6 @@ package db
 
 import (
 	"context"
-	"log"
 
 	"github.com/alvarolucio2007/GoSocial/internal/store"
 	"github.com/go-faker/faker/v4"
@@ -83,7 +82,6 @@ func generatePosts(numPosts int, userIDs []int64) ([]*store.Post, error) {
 		}
 		fakePost.UserID = userIDs[i%len(userIDs)]
 		fakePost.Tags = []string{faker.Word(), faker.Word(), faker.Word()}
-		log.Printf("Tags geradas: %v\n", fakePost.Tags)
 		posts[i] = &store.Post{Content: fakePost.Content, Title: fakePost.Title, UserID: fakePost.UserID, Tags: fakePost.Tags}
 	}
 	return posts, nil

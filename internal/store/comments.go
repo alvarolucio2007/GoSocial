@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"database/sql"
+	"log"
 	"time"
 )
 
@@ -60,7 +61,12 @@ func (s *CommentStore) GetByPostID(ctx context.Context, postID int64) ([]Comment
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() {
+		if err := rows.Close(); err != nil {
+			log.Printf("error in getByPostID function (comments) while closing conn:%v", err)
+		}
+	}()
+
 	comments := []Comment{}
 	for rows.Next() {
 		if rows.Err() != nil {

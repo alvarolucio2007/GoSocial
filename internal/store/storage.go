@@ -2,21 +2,26 @@ package store
 
 import (
 	"database/sql"
+	"errors"
 	"time"
 )
 
 type Storage struct {
-	Posts    PostRepository
-	Users    UserRepository
-	Comments CommentRepository
+	Posts     PostRepository
+	Users     UserRepository
+	Comments  CommentRepository
+	Followers FollowerRepository
 }
 
 func NewPostgresStorage(db *sql.DB) Storage {
 	return Storage{
-		Posts:    &PostStore{db: db},
-		Users:    &UserStore{db: db},
-		Comments: &CommentStore{db: db},
+		Posts:     &PostStore{db: db},
+		Users:     &UserStore{db: db},
+		Comments:  &CommentStore{db: db},
+		Followers: &FollowerStore{db: db},
 	}
 }
 
 const QueryTimeout time.Duration = 5 * time.Second
+
+var ErrConflict = errors.New("resource already exists")
