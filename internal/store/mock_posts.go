@@ -47,3 +47,7 @@ func (m *MockPostRepository) Delete(ctx context.Context, idPost int) error {
 	delete(m.posts, idPost)
 	return nil
 }
+
+func (m *MockPostRepository) GetUserFeed(ctx context.Context, idUser int64) ([]PostWithMetadata, error) {
+	return nil, nil
+}
