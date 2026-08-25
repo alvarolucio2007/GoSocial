@@ -2,6 +2,7 @@ package store
 
 import (
 	"database/sql"
+	"errors"
 	"time"
 )
 
@@ -22,3 +23,5 @@ func NewPostgresStorage(db *sql.DB) Storage {
 }
 
 const QueryTimeout time.Duration = 5 * time.Second
+
+var ErrConflict = errors.New("resource already exists")
