@@ -22,6 +22,11 @@ type Post struct {
 	UpdatedAt time.Time `json:"updated_at"`
 	Version   int       `json:"version"`
 	Comments  []Comment `json:"comments"`
+	User      User      `json:"user"`
+}
+type PostWithMetadata struct {
+	Post
+	CommentCount int `json:"comments_count"`
 }
 type PostStore struct {
 	db *sql.DB
@@ -31,6 +36,7 @@ type PostRepository interface {
 	Read(ctx context.Context, idPost int) (*Post, error)
 	Update(ctx context.Context, post *Post) error
 	Delete(ctx context.Context, idPost int) error
+	GetUserFeed(ctx context.Context, idUser int64) ([]PostWithMetadata, error)
 }
 
 func (s *PostStore) Create(ctx context.Context, post *Post) error {
@@ -110,6 +116,45 @@ func (s *PostStore) Delete(ctx context.Context, idPost int) error {
 		return ErrPostNotFound
 	}
 	return nil
+}
+
+func (s *PostStore) GetUserFeed(ctx context.Context, idUser int64) ([]PostWithMetadata, error) {
+	query := ` 
+	SELECT 
+		p.id,p.user_id,p.title,p.content,p.created_at,p.version,p.tags, u.username,
+		COUNT(c.id) AS comments_count
+	FROM posts p
+	LEFT JOIN comments c on c.post_id = p.id
+	left join users u on p.user_id = u.id
+	join followers f on f.follower_id = p.user_id  or p.user_id = $1
+	where f.user_id = $1 or p.user_id = $1
+	GROUP BY p.id,u.username
+	ORDER BY p.created_at DESC;
+	`
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeout)
+	defer cancel()
+	rows, err := s.db.QueryContext(ctx, query, idUser)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var feed []PostWithMetadata
+	for rows.Next() {
+		var p PostWithMetadata
+		var tagsBytes []byte
+		err := rows.Scan(
+			&p.ID, &p.UserID,
+			&p.Title, &p.Content,
+			&p.CreatedAt, &p.Version,
+			&tagsBytes, &p.User.Username, &p.CommentCount,
+		)
+		if err != nil {
+			return nil, err
+		}
+		p.Tags = parseTags(tagsBytes)
+		feed = append(feed, p)
+	}
+	return feed, nil
 }
 
 func parseTags(b []byte) []string {
