@@ -137,7 +137,11 @@ func (s *PostStore) GetUserFeed(ctx context.Context, idUser int64) ([]PostWithMe
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() {
+		if err := rows.Close(); err != nil {
+			log.Printf("error in feed function (post) while closing conn:%v", err)
+		}
+	}()
 	var feed []PostWithMetadata
 	for rows.Next() {
 		var p PostWithMetadata
