@@ -19,10 +19,10 @@ type UserStore struct {
 	db *sql.DB
 }
 type UserRepository interface {
-	Create(ctx context.Context, user *User) error
-	Read(ctx context.Context, idUser int) (*User, error)
-	Update(ctx context.Context, user *User) error
-	Delete(ctx context.Context, idUser int) error
+	Create(context.Context, *User) error
+	Read(context.Context, int) (*User, error)
+	Update(context.Context, *User) error
+	Delete(context.Context, int) error
 }
 
 func (s *UserStore) Create(ctx context.Context, user *User) error {
