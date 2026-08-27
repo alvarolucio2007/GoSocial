@@ -32,11 +32,11 @@ type PostStore struct {
 	db *sql.DB
 }
 type PostRepository interface {
-	Create(ctx context.Context, post *Post) error
-	Read(ctx context.Context, idPost int) (*Post, error)
-	Update(ctx context.Context, post *Post) error
-	Delete(ctx context.Context, idPost int) error
-	GetUserFeed(ctx context.Context, idUser int64) ([]PostWithMetadata, error)
+	Create(context.Context, *Post) error
+	Read(context.Context, int) (*Post, error)
+	Update(context.Context, *Post) error
+	Delete(context.Context, int) error
+	GetUserFeed(context.Context, int64, PaginatedFeedQuery) ([]PostWithMetadata, error)
 }
 
 func (s *PostStore) Create(ctx context.Context, post *Post) error {
@@ -118,7 +118,7 @@ func (s *PostStore) Delete(ctx context.Context, idPost int) error {
 	return nil
 }
 
-func (s *PostStore) GetUserFeed(ctx context.Context, idUser int64) ([]PostWithMetadata, error) {
+func (s *PostStore) GetUserFeed(ctx context.Context, idUser int64, fq PaginatedFeedQuery) ([]PostWithMetadata, error) {
 	query := ` 
 	SELECT 
 		p.id,p.user_id,p.title,p.content,p.created_at,p.version,p.tags, u.username,
@@ -129,11 +129,12 @@ func (s *PostStore) GetUserFeed(ctx context.Context, idUser int64) ([]PostWithMe
 	join followers f on f.follower_id = p.user_id  or p.user_id = $1
 	where f.user_id = $1 or p.user_id = $1
 	GROUP BY p.id,u.username
-	ORDER BY p.created_at DESC;
+	ORDER BY p.created_at ` + fq.Sort + `
+	LIMIT $2 OFFSET $3
 	`
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeout)
 	defer cancel()
-	rows, err := s.db.QueryContext(ctx, query, idUser)
+	rows, err := s.db.QueryContext(ctx, query, idUser, fq.Limit, fq.Offset)
 	if err != nil {
 		return nil, err
 	}
