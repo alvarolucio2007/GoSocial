@@ -1,34 +1,33 @@
 package main
 
 import (
-	"log"
 	"net/http"
 )
 
 func (app *application) internalServerError(w http.ResponseWriter, r *http.Request, err error) {
-	log.Printf("internal error:%s path: %s,error: %s\n", r.Method, r.URL.Path, err)
+	app.logger.Errorw("internal error", "method", r.Method, "path", r.URL.Path, "error", err)
 	if err := writeJSONError(w, http.StatusInternalServerError, " the server has encountered a problem."); err != nil {
-		log.Printf("error inside internalServerError func: %v", err)
+		app.logger.Errorf("error while attempting function writeJSONError inside internalServerError %v", err)
 	}
 }
 
 func (app *application) badRequestError(w http.ResponseWriter, r *http.Request, err error) {
-	log.Printf("bad request error:%s path: %s,error: %s\n", r.Method, r.URL.Path, err)
+	app.logger.Warnw("bad request error", "method", r.Method, "path", r.URL.Path, "error", err)
 	if err := writeJSONError(w, http.StatusBadRequest, err.Error()); err != nil {
-		log.Printf("error inside BadRequestError func: %v", err)
+		app.logger.Errorf("error while attempting function writeJSONError inside badRequestError %v", err)
 	}
 }
 
 func (app *application) notFoundError(w http.ResponseWriter, r *http.Request, err error) {
-	log.Printf("not found error:%s path: %s,error: %s\n", r.Method, r.URL.Path, err)
+	app.logger.Warnw("not found error", "method", r.Method, "path", r.URL.Path, "error", err)
 	if err := writeJSONError(w, http.StatusNotFound, "resource not found"); err != nil {
-		log.Printf("error inside StatusNotFound func: %v", err)
+		app.logger.Errorf("error while attempting function writeJSONError inside notFoundError %v", err)
 	}
 }
 
 func (app *application) conflictError(w http.ResponseWriter, r *http.Request, err error) {
-	log.Printf("conflict error:%s path: %s,error: %s\n", r.Method, r.URL.Path, err)
+	app.logger.Warnw("conflict error", "method", r.Method, "path", r.URL.Path, "error", err)
 	if err := writeJSONError(w, http.StatusConflict, "resource not found"); err != nil {
-		log.Printf("error inside conflictError func: %v", err)
+		app.logger.Errorf("error while attempting function writeJSONError inside conflictError %v", err)
 	}
 }
