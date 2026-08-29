@@ -119,22 +119,37 @@ func (s *PostStore) Delete(ctx context.Context, idPost int) error {
 }
 
 func (s *PostStore) GetUserFeed(ctx context.Context, idUser int64, fq PaginatedFeedQuery) ([]PostWithMetadata, error) {
-	query := ` 
-	SELECT 
-		p.id,p.user_id,p.title,p.content,p.created_at,p.version,p.tags, u.username,
-		COUNT(c.id) AS comments_count
-	FROM posts p
-	LEFT JOIN comments c on c.post_id = p.id
-	left join users u on p.user_id = u.id
-	join followers f on f.follower_id = p.user_id  or p.user_id = $1
-	where f.user_id = $1 or p.user_id = $1
-	GROUP BY p.id,u.username
-	ORDER BY p.created_at ` + fq.Sort + `
-	LIMIT $2 OFFSET $3
-	`
+	tagsParam := fq.Tags
+	if tagsParam == nil {
+		tagsParam = []string{}
+	}
+	query := ` SELECT 
+            p.id, 
+            p.user_id, 
+            p.title, 
+            p.content, 
+            p.created_at, 
+            p.version, 
+            p.tags, 
+            u.username,
+            (SELECT COUNT(*) FROM comments c WHERE c.post_id = p.id) AS comments_count
+    FROM posts p
+    LEFT JOIN users u ON p.user_id = u.id
+    LEFT JOIN followers f ON f.follower_id = p.user_id
+    WHERE (f.user_id = $1 OR p.user_id = $1)
+        AND (p.title ILIKE '%' || $4 || '%' OR p.content ILIKE '%' || $4 || '%')
+        AND (p.tags @> $5 OR $5 = '{}')
+        -- Datas tratadas corretamente contra NULL e usando AND:
+        AND ($6::timestamptz IS NULL OR p.created_at >= $6)
+        AND ($7::timestamptz IS NULL OR p.created_at <= $7)
+    GROUP BY p.id, u.username
+    ORDER BY p.created_at ` + fq.Sort + `
+    LIMIT $2 OFFSET $3
+`
+
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeout)
 	defer cancel()
-	rows, err := s.db.QueryContext(ctx, query, idUser, fq.Limit, fq.Offset)
+	rows, err := s.db.QueryContext(ctx, query, idUser, fq.Limit, fq.Offset, fq.Search, tagsParam, fq.Since, fq.Until)
 	if err != nil {
 		return nil, err
 	}
@@ -143,7 +158,7 @@ func (s *PostStore) GetUserFeed(ctx context.Context, idUser int64, fq PaginatedF
 			log.Printf("error in feed function (post) while closing conn:%v", err)
 		}
 	}()
-	var feed []PostWithMetadata
+	feed := make([]PostWithMetadata, 0)
 	for rows.Next() {
 		var p PostWithMetadata
 		var tagsBytes []byte
