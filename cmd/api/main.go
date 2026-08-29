@@ -7,10 +7,27 @@ import (
 	"github.com/alvarolucio2007/GoSocial/internal/db"
 	"github.com/alvarolucio2007/GoSocial/internal/env"
 	"github.com/alvarolucio2007/GoSocial/internal/store"
+	_ "github.com/swaggo/http-swagger/v2"
 )
 
 const version = "0.0.1"
 
+//	@title			GoSocial API
+//	@description	This is a sample server GoSocial server.
+//	@termsOfService	http://swagger.io/terms/
+
+//	@contact.name	API Support
+//	@contact.url	http://www.swagger.io/support
+//	@contact.email	support@swagger.io
+
+//	@license.name	MIT
+//	@license.url	https://mit-license.org/
+
+// @BasePath					/v1
+// @securityDefinitions.apikey	ApiKeyAuth
+// @in							header
+// @name						Authorization
+// @description
 func main() {
 	maxOpenConn, _ := env.GetInt("DB_MAX_OPEN_CONN", 30)
 	maxIdleConn, _ := env.GetInt("DB_MAX_IDLE_CONN", 30)
@@ -27,7 +44,8 @@ func main() {
 			maxIdleConn: maxIdleConn,
 			maxIdleTime: maxIdleTime,
 		},
-		env: env.GetString("ENV", "development"),
+		env:    env.GetString("ENV", "development"),
+		apiURL: env.GetString("EXTERNAL_URL", "localhost:8080"),
 	}
 	db, err := db.New(cfg.db.addr, cfg.db.maxOpenConn, cfg.db.maxIdleConn, cfg.db.maxIdleTime)
 	if err != nil {
