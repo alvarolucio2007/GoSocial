@@ -1,4 +1,4 @@
-.PHONY: migrateup migratedown migration test seed
+.PHONY: migrateup migratedown migration test seed gen-docs
 MIGRATIONS_PATH=./cmd/migrate/migrations
 DB_URL=postgres://admin:admin@localhost/social?sslmode=disable
 migration:
@@ -11,3 +11,5 @@ test:
 		go test -v -cover -short ./...
 seed:
 	go run cmd/migrate/seed/main.go
+gen-docs:
+	swag init -g ./cmd/api/main.go -o ./docs --parseDependency --parseInternal && swag fmt ./cmd/api/
