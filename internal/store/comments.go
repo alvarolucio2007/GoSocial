@@ -29,8 +29,8 @@ type CommentStore struct {
 	db *sql.DB
 }
 type CommentRepository interface {
-	GetByPostID(ctx context.Context, postID int64) ([]Comment, error)
-	Create(ctx context.Context, comment *Comment) error
+	GetByPostID(context.Context, int64) ([]Comment, error)
+	Create(context.Context, *Comment) error
 }
 
 func (s *CommentStore) Create(ctx context.Context, comment *Comment) error {

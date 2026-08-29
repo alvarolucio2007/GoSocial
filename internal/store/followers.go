@@ -16,8 +16,8 @@ type FollowerStore struct {
 	db *sql.DB
 }
 type FollowerRepository interface {
-	Follow(ctx context.Context, followerID, userID int64) error
-	Unfollow(ctx context.Context, followerID, userID int64) error
+	Follow(context.Context, int64, int64) error
+	Unfollow(context.Context, int64, int64) error
 }
 
 func (s *FollowerStore) Follow(ctx context.Context, followerID, userID int64) error {
