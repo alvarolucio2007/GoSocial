@@ -4,8 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"time"
 
 	"github.com/alvarolucio2007/GoSocial/internal/utils"
+	"github.com/jackc/pgx/v5/pgconn"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
@@ -20,10 +22,11 @@ type UserStore struct {
 	db *sql.DB
 }
 type UserRepository interface {
-	Create(context.Context, *User) error
-	Read(context.Context, int) (*User, error)
-	Update(context.Context, *User) error
-	Delete(context.Context, int) error
+	Create(ctx context.Context, tx *sql.Tx, user *User) error
+	Read(ctx context.Context, userID int) (*User, error)
+	Update(ctx context.Context, user *User) error
+	Delete(ctx context.Context, userID int) error
+	CreateAndInvite(ctx context.Context, user *User, token string, exp time.Duration) error
 }
 type password struct {
 	text string
@@ -48,13 +51,33 @@ func (p *password) Compare(text string) (bool, error) {
 	return isSame, nil
 }
 
-func (s *UserStore) Create(ctx context.Context, user *User) error {
+func mapPgError(err error) error {
+	var pgErr *pgconn.PgError
+	if !errors.As(err, &pgErr) {
+		return err
+	}
+
+	switch pgErr.Code {
+	case "23505":
+		switch pgErr.ConstraintName {
+		case "users_email_key":
+			return ErrDuplicateEmail
+		case "users_username_key":
+			return ErrDuplicateUsername
+		}
+		return ErrConflict
+	default:
+		return err
+	}
+}
+
+func (s *UserStore) Create(ctx context.Context, tx *sql.Tx, user *User) error {
 	query := `INSERT INTO users (username,email,password)
 									VALUES ($1,$2,$3) RETURNING id,created_at`
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeout)
 	defer cancel()
 	if err := s.db.QueryRowContext(ctx, query, user.Username, user.Email, user.Password.hash).Scan(&user.ID, &user.CreatedAt); err != nil {
-		return err
+		return mapPgError(err)
 	}
 	return nil
 }
@@ -116,6 +139,30 @@ func (s *UserStore) Delete(ctx context.Context, idUser int) error {
 	}
 	if count == 0 {
 		return ErrUserNotFound
+	}
+	return nil
+}
+
+func (s *UserStore) CreateAndInvite(ctx context.Context, user *User, token string, invitationExp time.Duration) error {
+	return withTx(s.db, ctx, func(tx *sql.Tx) error {
+		if err := s.Create(ctx, tx, user); err != nil {
+			return err
+		}
+		err := s.createUserInvitation(ctx, tx, token, invitationExp, user.ID)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+}
+
+func (s *UserStore) createUserInvitation(ctx context.Context, tx *sql.Tx, token string, exp time.Duration, userID int64) error {
+	query := `INSERT INTO user_invitations (token,user_id,expiry) VALUES ($1,$2,$3)`
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeout)
+	defer cancel()
+	_, err := tx.ExecContext(ctx, query, token, userID, time.Now().Add(exp))
+	if err != nil {
+		return err
 	}
 	return nil
 }
