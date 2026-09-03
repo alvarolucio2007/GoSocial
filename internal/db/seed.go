@@ -18,7 +18,7 @@ func Seed(store store.Storage) error {
 	}
 	var userIDs []int64
 	for _, user := range users {
-		if err := store.Users.Create(ctx, user); err != nil {
+		if err := store.Users.Create(ctx, nil, user); err != nil {
 			return err
 		}
 		userIDs = append(userIDs, user.ID)
