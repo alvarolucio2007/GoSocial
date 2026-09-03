@@ -32,8 +32,8 @@ func (app *application) createUserHandler(w http.ResponseWriter, r *http.Request
 	user := &store.User{
 		Username: payload.Username,
 		Email:    payload.Email,
-		Password: payload.Password,
 	}
+	user.Password.Set(payload.Password)
 	ctx := r.Context()
 	if err := app.storage.Users.Create(ctx, user); err != nil {
 		app.internalServerError(w, r, err)
@@ -90,9 +90,9 @@ func (app *application) updateUserHandler(w http.ResponseWriter, r *http.Request
 	user := &store.User{
 		ID:       id,
 		Username: payload.Username,
-		Password: payload.Password,
 		Email:    payload.Email,
 	}
+	user.Password.Set(payload.Password)
 	ctx := r.Context()
 	if err := app.storage.Users.Update(ctx, user); err != nil {
 		switch {
