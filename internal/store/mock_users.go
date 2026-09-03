@@ -31,7 +31,11 @@ func (m *MockUserRepository) Update(ctx context.Context, user *User) error {
 	if user.Email != "" {
 		u.Email = user.Email
 	}
-	if user.Password != "" {
+	password := password{}
+	if err := password.Set(""); err != nil {
+		return err
+	}
+	if user.Password != password {
 		u.Password = user.Password
 	}
 	m.users[int(user.ID)] = &u
