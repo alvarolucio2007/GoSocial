@@ -32,12 +32,15 @@ func TestCreateUserHandler(t *testing.T) {
 }
 
 func TestReadUserHandler(t *testing.T) {
-	mockStorage := store.NewMockStorage(nil, map[int]*store.User{1: {ID: 1, Username: "Test", Email: "Test@gmail.com", Password: "password"}}, nil)
+	mockUser := &store.User{ID: 1, Username: "Test", Email: "Test@gmail.com"}
+	mockUser.Password.Set("password")
+	mockStorage := store.NewMockStorage(nil, map[int]*store.User{1: mockUser}, nil)
 	app := &application{storage: store.Storage(mockStorage)}
 	req := httptest.NewRequest("GET", "/v1/users/1", nil)
 	rctx := chi.NewRouteContext()
 	rctx.URLParams.Add("userID", "1")
-	userContext := &store.User{ID: 1, Username: "Test", Email: "Test@gmail.com", Password: "password"}
+	userContext := &store.User{ID: 1, Username: "Test", Email: "Test@gmail.com"}
+	userContext.Password.Set("password")
 	req = req.WithContext(context.WithValue(req.Context(), userCtx, userContext))
 	w := httptest.NewRecorder()
 	app.readUserHandler(w, req)
@@ -52,8 +55,10 @@ func TestReadUserHandler(t *testing.T) {
 }
 
 func TestEditUserHandler(t *testing.T) {
+	mockUser := &store.User{ID: 1, Username: "Test", Email: "test@gmail.com"}
+	mockUser.Password.Set("...")
 	mockStorage := store.NewMockStorage(nil, map[int]*store.User{
-		1: {ID: 1, Username: "Test", Email: "test@gmail.com", Password: "..."},
+		1: mockUser,
 	}, nil)
 	app := &application{storage: store.Storage(mockStorage)}
 	body := `{"username":"TEST2","email":"test2@gmail.com","password":"12345"}`
@@ -69,7 +74,9 @@ func TestEditUserHandler(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "TEST2", user.Username)
 	require.Equal(t, "test2@gmail.com", user.Email)
-	require.Equal(t, "12345", user.Password)
+	samePassword, err := user.Password.Compare("12345")
+	require.NoError(t, err)
+	require.True(t, samePassword)
 }
 
 func TestDeleteUserHandler(t *testing.T) {
