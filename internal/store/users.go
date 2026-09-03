@@ -5,15 +5,16 @@ import (
 	"database/sql"
 	"errors"
 
+	"github.com/alvarolucio2007/GoSocial/internal/utils"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 type User struct {
-	ID        int64  `json:"id"`
-	Username  string `json:"username"`
-	Email     string `json:"email"`
-	Password  string `json:"-"`
-	CreatedAt string `json:"created_at"`
+	ID        int64    `json:"id"`
+	Username  string   `json:"username"`
+	Email     string   `json:"email"`
+	Password  password `json:"-"`
+	CreatedAt string   `json:"created_at"`
 }
 type UserStore struct {
 	db *sql.DB
@@ -24,13 +25,35 @@ type UserRepository interface {
 	Update(context.Context, *User) error
 	Delete(context.Context, int) error
 }
+type password struct {
+	text string
+	hash string
+}
+
+func (p *password) Set(text string) error {
+	hash, err := utils.HashPassword(text)
+	if err != nil {
+		return err
+	}
+	p.text = text
+	p.hash = hash
+	return nil
+}
+
+func (p *password) Compare(text string) (bool, error) {
+	isSame, err := utils.CheckPassword(text, p.hash)
+	if err != nil {
+		return false, err
+	}
+	return isSame, nil
+}
 
 func (s *UserStore) Create(ctx context.Context, user *User) error {
 	query := `INSERT INTO users (username,email,password)
 									VALUES ($1,$2,$3) RETURNING id,created_at`
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeout)
 	defer cancel()
-	if err := s.db.QueryRowContext(ctx, query, user.Username, user.Email, user.Password).Scan(&user.ID, &user.CreatedAt); err != nil {
+	if err := s.db.QueryRowContext(ctx, query, user.Username, user.Email, user.Password.hash).Scan(&user.ID, &user.CreatedAt); err != nil {
 		return err
 	}
 	return nil
@@ -44,7 +67,7 @@ func (s *UserStore) Read(ctx context.Context, idUser int) (*User, error) {
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeout)
 	defer cancel()
-	err := s.db.QueryRowContext(ctx, query, idUser).Scan(&u.ID, &u.Username, &u.Email, &u.Password, &u.CreatedAt)
+	err := s.db.QueryRowContext(ctx, query, idUser).Scan(&u.ID, &u.Username, &u.Email, &u.Password.hash, &u.CreatedAt)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrUserNotFound
 	}
@@ -65,7 +88,7 @@ func (s *UserStore) Update(ctx context.Context, user *User) error {
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeout)
 	defer cancel()
-	res, err := s.db.ExecContext(ctx, query, user.Username, user.Email, user.Password, user.ID)
+	res, err := s.db.ExecContext(ctx, query, user.Username, user.Email, user.Password.hash, user.ID)
 	if err != nil {
 		return err
 	}
