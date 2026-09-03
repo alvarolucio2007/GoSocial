@@ -60,7 +60,11 @@ func generateUsers(numUsers int) ([]*store.User, error) {
 		if err != nil {
 			return nil, err
 		}
-		users[i] = &store.User{Username: fakeUser.Username, Email: fakeUser.Email, Password: fakeUser.Password}
+		addSeedUser := &store.User{Username: fakeUser.Username, Email: fakeUser.Email}
+		if err := addSeedUser.Password.Set(fakeUser.Password); err != nil {
+			return nil, err
+		}
+		users[i] = addSeedUser
 	}
 	return users, nil
 }
