@@ -52,6 +52,9 @@ func main() {
 		},
 		env:    env.GetString("ENV", "development"),
 		apiURL: env.GetString("EXTERNAL_URL", "localhost:8080"),
+		mail: mailConfig{
+			exp: 3 * 24 * time.Hour, // 3 days
+		},
 	}
 	db, err := db.New(cfg.db.addr, cfg.db.maxOpenConn, cfg.db.maxIdleConn, cfg.db.maxIdleTime)
 	if err != nil {
