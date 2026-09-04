@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"log"
 	"time"
 )
 
@@ -38,7 +39,9 @@ func withTx(db *sql.DB, ctx context.Context, fn func(*sql.Tx) error) error {
 		return err
 	}
 	if err := fn(tx); err != nil {
-		tx.Rollback()
+		if err2 := tx.Rollback(); err2 != nil {
+			log.Printf("rollback issue %s", err2)
+		}
 		return err
 	}
 	return tx.Commit()
