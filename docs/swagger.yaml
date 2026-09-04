@@ -24,6 +24,23 @@ definitions:
       user_id:
         type: integer
     type: object
+  cmd_api.RegisterUserPayload:
+    properties:
+      email:
+        maxLength: 255
+        type: string
+      password:
+        maxLength: 72
+        minLength: 3
+        type: string
+      username:
+        maxLength: 100
+        type: string
+    required:
+    - email
+    - password
+    - username
+    type: object
   cmd_api.UpdatePostPayload:
     properties:
       content:
@@ -33,6 +50,21 @@ definitions:
           type: string
         type: array
       title:
+        type: string
+    type: object
+  cmd_api.UserWithToken:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      is_active:
+        type: boolean
+      token:
+        type: string
+      username:
         type: string
     type: object
   github_com_alvarolucio2007_GoSocial_internal_store.Comment:
@@ -114,6 +146,8 @@ definitions:
         type: string
       id:
         type: integer
+      is_active:
+        type: boolean
       username:
         type: string
     type: object
@@ -129,6 +163,34 @@ info:
   termsOfService: http://swagger.io/terms/
   title: GoSocial API
 paths:
+  /authentication/user:
+    post:
+      consumes:
+      - application/json
+      description: Registers an user
+      parameters:
+      - description: User credentials
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/cmd_api.RegisterUserPayload'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: User registered
+          schema:
+            $ref: '#/definitions/cmd_api.UserWithToken'
+        "400":
+          description: Bad Request
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Registers an user
+      tags:
+      - authentication
   /health:
     get:
       description: Healthcheck endpoint
@@ -370,6 +432,35 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Follows a user
+      tags:
+      - users
+  /users/activate/{token}:
+    put:
+      consumes:
+      - application/json
+      description: Activates/registers an user by invitation token
+      parameters:
+      - description: invitation token
+        in: path
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: User activated
+          schema:
+            type: string
+        "400":
+          description: error
+          schema: {}
+        "404":
+          description: error
+          schema: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Activates/Registers an user
       tags:
       - users
   /users/feed:
