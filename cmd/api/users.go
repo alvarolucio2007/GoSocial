@@ -14,35 +14,9 @@ type userKey string
 
 const userCtx userKey = "user"
 
-type CreateUserPayload struct {
-	Username string `json:"username" validate:"required,max=100"`
-	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required"`
-}
-
-func (app *application) createUserHandler(w http.ResponseWriter, r *http.Request) {
-	var payload CreateUserPayload
-	if err := readJSON(w, r, &payload); err != nil {
-		app.badRequestError(w, r, err)
-		return
-	}
-	if err := Validate.Struct(payload); err != nil {
-		app.badRequestError(w, r, err)
-	}
-	user := &store.User{
-		Username: payload.Username,
-		Email:    payload.Email,
-	}
-	user.Password.Set(payload.Password)
-	ctx := r.Context()
-	if err := app.storage.Users.Create(ctx, user); err != nil {
-		app.internalServerError(w, r, err)
-		return
-	}
-	if err := app.jsonResponse(w, http.StatusCreated, user); err != nil {
-		app.internalServerError(w, r, err)
-		return
-	}
+func getUserFromContext(r *http.Request) *store.User {
+	user, _ := r.Context().Value(userCtx).(*store.User)
+	return user
 }
 
 // ReadUser godoc
@@ -206,6 +180,36 @@ func (app *application) unfollowUserHandler(w http.ResponseWriter, r *http.Reque
 	}
 }
 
+// ActivateUser godoc
+//
+//	@Summary		Activates/Registers an user
+//	@Description	Activates/registers an user by invitation token
+//	@Tags			users
+//	@Accept			json
+//	@Produce		json
+//	@Param			token	path		string	true	"invitation token"
+//	@Success		204		{string}	string	"User activated"
+//	@Failure		400		{object}	error	"error"
+//	@Failure		404		{object}	error	"error"
+//	@Security		ApiKeyAuth
+//	@Router			/users/activate/{token} [put]
+func (app *application) activateUserHandler(w http.ResponseWriter, r *http.Request) {
+	token := chi.URLParam(r, "token")
+	if err := app.storage.Users.Activate(r.Context(), token); err != nil {
+		switch err {
+		case store.ErrNotFound:
+			app.badRequestError(w, r, err)
+		default:
+			app.internalServerError(w, r, err)
+		}
+		return
+	}
+	if err := app.jsonResponse(w, http.StatusNoContent, ""); err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+}
+
 func (app *application) userContextMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		idParam := chi.URLParam(r, "userID")
@@ -228,9 +232,4 @@ func (app *application) userContextMiddleware(next http.Handler) http.Handler {
 		ctx = context.WithValue(ctx, userCtx, user)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
-}
-
-func getUserFromContext(r *http.Request) *store.User {
-	user, _ := r.Context().Value(userCtx).(*store.User)
-	return user
 }
