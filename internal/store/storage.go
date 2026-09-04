@@ -38,9 +38,7 @@ func withTx(db *sql.DB, ctx context.Context, fn func(*sql.Tx) error) error {
 		return err
 	}
 	if err := fn(tx); err != nil {
-		if err2 := tx.Rollback(); err != nil {
-			return err2
-		}
+		tx.Rollback()
 		return err
 	}
 	return tx.Commit()
