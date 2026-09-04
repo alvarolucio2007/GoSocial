@@ -15,14 +15,16 @@ import (
 
 func TestReadUserHandler(t *testing.T) {
 	mockUser := &store.User{ID: 1, Username: "Test", Email: "Test@gmail.com"}
-	mockUser.Password.Set("password")
+	err := mockUser.Password.Set("password")
+	require.NoError(t, err)
 	mockStorage := store.NewMockStorage(nil, map[int]*store.User{1: mockUser}, nil)
 	app := &application{storage: store.Storage(mockStorage)}
 	req := httptest.NewRequest("GET", "/v1/users/1", nil)
 	rctx := chi.NewRouteContext()
 	rctx.URLParams.Add("userID", "1")
 	userContext := &store.User{ID: 1, Username: "Test", Email: "Test@gmail.com"}
-	userContext.Password.Set("password")
+	err = userContext.Password.Set("password")
+	require.NoError(t, err)
 	req = req.WithContext(context.WithValue(req.Context(), userCtx, userContext))
 	w := httptest.NewRecorder()
 	app.readUserHandler(w, req)
@@ -30,7 +32,7 @@ func TestReadUserHandler(t *testing.T) {
 	var user struct {
 		Data store.User `json:"data"`
 	}
-	err := json.NewDecoder(w.Body).Decode(&user)
+	err = json.NewDecoder(w.Body).Decode(&user)
 	require.NoError(t, err)
 	require.Equal(t, "Test", user.Data.Username)
 	require.Equal(t, "Test@gmail.com", user.Data.Email)
@@ -38,7 +40,8 @@ func TestReadUserHandler(t *testing.T) {
 
 func TestEditUserHandler(t *testing.T) {
 	mockUser := &store.User{ID: 1, Username: "Test", Email: "test@gmail.com"}
-	mockUser.Password.Set("...")
+	err := mockUser.Password.Set("...")
+	require.NoError(t, err)
 	mockStorage := store.NewMockStorage(nil, map[int]*store.User{
 		1: mockUser,
 	}, nil)
