@@ -1,12 +1,16 @@
 package store
 
-import "context"
+import (
+	"context"
+	"database/sql"
+	"time"
+)
 
 type MockUserRepository struct {
 	users map[int]*User
 }
 
-func (m *MockUserRepository) Create(ctx context.Context, user *User) error {
+func (m *MockUserRepository) Create(ctx context.Context, tx *sql.Tx, user *User) error {
 	m.users[int(user.ID)] = user
 	return nil
 }
@@ -31,7 +35,11 @@ func (m *MockUserRepository) Update(ctx context.Context, user *User) error {
 	if user.Email != "" {
 		u.Email = user.Email
 	}
-	if user.Password != "" {
+	password := password{}
+	if err := password.Set(""); err != nil {
+		return err
+	}
+	if user.Password != password {
 		u.Password = user.Password
 	}
 	m.users[int(user.ID)] = &u
@@ -44,5 +52,13 @@ func (m *MockUserRepository) Delete(ctx context.Context, idUser int) error {
 		return ErrPostNotFound
 	}
 	delete(m.users, idUser)
+	return nil
+}
+
+func (m *MockUserRepository) CreateAndInvite(ctx context.Context, user *User, token string, invitationExp time.Duration) error {
+	return nil
+}
+
+func (m *MockUserRepository) Activate(ctx context.Context, token string) error {
 	return nil
 }

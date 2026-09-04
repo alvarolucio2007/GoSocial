@@ -8,6 +8,7 @@ import (
 	"github.com/alvarolucio2007/GoSocial/internal/store"
 	_ "github.com/swaggo/http-swagger/v2"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 const version = "0.0.1"
@@ -29,12 +30,18 @@ const version = "0.0.1"
 // @name						Authorization
 // @description
 func main() {
-	logger := zap.Must(zap.NewProduction()).Sugar()
+	cfg_zap := zap.NewProductionConfig()
+
+	logger := zap.Must(cfg_zap.Build(
+		zap.AddStacktrace(zapcore.FatalLevel),
+	)).Sugar()
+
 	defer func() {
 		if err := logger.Sync(); err != nil {
 			logger.Errorf("Couldn't sync logger: %s", err)
 		}
 	}()
+
 	maxOpenConn, _ := env.GetInt("DB_MAX_OPEN_CONN", 30)
 	maxIdleConn, _ := env.GetInt("DB_MAX_IDLE_CONN", 30)
 	maxIdleTime, err := time.ParseDuration(env.GetString("DB_MAX_IDLE_TIME", "15m"))
@@ -52,6 +59,9 @@ func main() {
 		},
 		env:    env.GetString("ENV", "development"),
 		apiURL: env.GetString("EXTERNAL_URL", "localhost:8080"),
+		mail: mailConfig{
+			exp: 3 * 24 * time.Hour, // 3 days
+		},
 	}
 	db, err := db.New(cfg.db.addr, cfg.db.maxOpenConn, cfg.db.maxIdleConn, cfg.db.maxIdleTime)
 	if err != nil {

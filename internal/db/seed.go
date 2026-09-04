@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/alvarolucio2007/GoSocial/internal/store"
 	"github.com/go-faker/faker/v4"
@@ -9,7 +10,7 @@ import (
 
 const NUMBER_GENERATED = 100
 
-func Seed(store store.Storage) error {
+func Seed(store store.Storage, db *sql.DB) error {
 	ctx := context.Background()
 
 	users, err := generateUsers(NUMBER_GENERATED)
@@ -17,11 +18,15 @@ func Seed(store store.Storage) error {
 		return err
 	}
 	var userIDs []int64
+	tx, _ := db.BeginTx(ctx, nil)
 	for _, user := range users {
-		if err := store.Users.Create(ctx, user); err != nil {
+		if err := store.Users.Create(ctx, tx, user); err != nil {
 			return err
 		}
 		userIDs = append(userIDs, user.ID)
+	}
+	if err := tx.Commit(); err != nil {
+		return err
 	}
 	posts, err := generatePosts(NUMBER_GENERATED, userIDs)
 	if err != nil {
@@ -60,7 +65,11 @@ func generateUsers(numUsers int) ([]*store.User, error) {
 		if err != nil {
 			return nil, err
 		}
-		users[i] = &store.User{Username: fakeUser.Username, Email: fakeUser.Email, Password: fakeUser.Password}
+		addSeedUser := &store.User{Username: fakeUser.Username, Email: fakeUser.Email}
+		if err := addSeedUser.Password.Set(fakeUser.Password); err != nil {
+			return nil, err
+		}
+		users[i] = addSeedUser
 	}
 	return users, nil
 }
