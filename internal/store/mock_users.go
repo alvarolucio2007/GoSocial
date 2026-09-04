@@ -58,3 +58,7 @@ func (m *MockUserRepository) Delete(ctx context.Context, idUser int) error {
 func (m *MockUserRepository) CreateAndInvite(ctx context.Context, user *User, token string, invitationExp time.Duration) error {
 	return nil
 }
+
+func (m *MockUserRepository) Activate(ctx context.Context, token string) error {
+	return nil
+}
