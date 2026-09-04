@@ -21,7 +21,7 @@ func main() {
 		}
 	}()
 	store := store.NewPostgresStorage(conn)
-	if err := db.Seed(store); err != nil {
+	if err := db.Seed(store, conn); err != nil {
 		log.Printf("error while seeding: %v", err)
 	}
 }
