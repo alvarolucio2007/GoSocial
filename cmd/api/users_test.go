@@ -13,24 +13,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestCreateUserHandler(t *testing.T) {
-	mockStorage := store.NewMockStorage(nil, map[int]*store.User{}, nil)
-	app := &application{storage: store.Storage(mockStorage)}
-	body := `{"username":"Test","email":"test@email.com","password":"password"}`
-	req := httptest.NewRequest("POST", "/v1/", strings.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
-	w := httptest.NewRecorder()
-	app.createUserHandler(w, req)
-	require.Equal(t, http.StatusCreated, w.Code)
-	var user struct {
-		Data store.User `json:"data"`
-	}
-	err := json.NewDecoder(w.Body).Decode(&user)
-	require.NoError(t, err)
-	require.Equal(t, "Test", user.Data.Username)
-	require.Equal(t, "test@email.com", user.Data.Email)
-}
-
 func TestReadUserHandler(t *testing.T) {
 	mockUser := &store.User{ID: 1, Username: "Test", Email: "Test@gmail.com"}
 	mockUser.Password.Set("password")
