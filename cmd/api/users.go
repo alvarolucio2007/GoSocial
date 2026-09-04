@@ -66,7 +66,9 @@ func (app *application) updateUserHandler(w http.ResponseWriter, r *http.Request
 		Username: payload.Username,
 		Email:    payload.Email,
 	}
-	user.Password.Set(payload.Password)
+	if err := user.Password.Set(payload.Password); err != nil {
+		app.internalServerError(w, r, err)
+	}
 	ctx := r.Context()
 	if err := app.storage.Users.Update(ctx, user); err != nil {
 		switch {
@@ -141,10 +143,7 @@ func (app *application) followUserHandler(w http.ResponseWriter, r *http.Request
 			return
 		}
 	}
-	if err := app.jsonResponse(w, http.StatusNoContent, nil); err != nil {
-		app.internalServerError(w, r, err)
-		return
-	}
+	w.WriteHeader(http.StatusNoContent)
 }
 
 // FollowUser godoc
@@ -174,10 +173,7 @@ func (app *application) unfollowUserHandler(w http.ResponseWriter, r *http.Reque
 		app.internalServerError(w, r, err)
 		return
 	}
-	if err := app.jsonResponse(w, http.StatusNoContent, nil); err != nil {
-		app.internalServerError(w, r, err)
-		return
-	}
+	w.WriteHeader(http.StatusNoContent)
 }
 
 // ActivateUser godoc
@@ -204,10 +200,7 @@ func (app *application) activateUserHandler(w http.ResponseWriter, r *http.Reque
 		}
 		return
 	}
-	if err := app.jsonResponse(w, http.StatusNoContent, ""); err != nil {
-		app.internalServerError(w, r, err)
-		return
-	}
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (app *application) userContextMiddleware(next http.Handler) http.Handler {
