@@ -46,12 +46,12 @@ func (m *MockUserRepository) Update(ctx context.Context, user *User) error {
 	return nil
 }
 
-func (m *MockUserRepository) Delete(ctx context.Context, idUser int) error {
-	_, err := m.Read(ctx, idUser)
+func (m *MockUserRepository) Delete(ctx context.Context, idUser int64) error {
+	_, err := m.Read(ctx, int(idUser))
 	if err != nil {
 		return ErrPostNotFound
 	}
-	delete(m.users, idUser)
+	delete(m.users, int(idUser))
 	return nil
 }
 
