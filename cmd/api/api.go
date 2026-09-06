@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/alvarolucio2007/GoSocial/docs" // required to generate swagger docs
+	"github.com/alvarolucio2007/GoSocial/internal/mailer"
 	"github.com/alvarolucio2007/GoSocial/internal/store"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -17,13 +18,15 @@ type application struct {
 	config  config
 	storage store.Storage
 	logger  *zap.SugaredLogger
+	mailer  mailer.Client
 }
 type config struct {
-	addr   string
-	db     dbConfig
-	env    string
-	apiURL string
-	mail   mailConfig
+	addr        string
+	db          dbConfig
+	env         string
+	apiURL      string
+	mail        mailConfig
+	frontendURL string
 }
 type dbConfig struct {
 	addr        string
@@ -32,7 +35,12 @@ type dbConfig struct {
 	maxIdleTime time.Duration
 }
 type mailConfig struct {
-	exp time.Duration
+	sendGrid  sendGridConfig
+	exp       time.Duration
+	fromEmail string
+}
+type sendGridConfig struct {
+	apiKey string
 }
 
 func (app *application) mount() http.Handler {
