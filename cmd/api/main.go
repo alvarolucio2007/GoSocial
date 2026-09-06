@@ -5,6 +5,7 @@ import (
 
 	"github.com/alvarolucio2007/GoSocial/internal/db"
 	"github.com/alvarolucio2007/GoSocial/internal/env"
+	"github.com/alvarolucio2007/GoSocial/internal/mailer"
 	"github.com/alvarolucio2007/GoSocial/internal/store"
 	_ "github.com/swaggo/http-swagger/v2"
 	"go.uber.org/zap"
@@ -57,10 +58,15 @@ func main() {
 			maxIdleConn: maxIdleConn,
 			maxIdleTime: maxIdleTime,
 		},
-		env:    env.GetString("ENV", "development"),
-		apiURL: env.GetString("EXTERNAL_URL", "localhost:8080"),
+		env:         env.GetString("ENV", "development"),
+		apiURL:      env.GetString("EXTERNAL_URL", "localhost:8080"),
+		frontendURL: env.GetString("FRONTEND_URL", "http://localhost:4000"),
 		mail: mailConfig{
-			exp: 3 * 24 * time.Hour, // 3 days
+			exp:       3 * 24 * time.Hour, // 3 days
+			fromEmail: env.GetString("SENDGRID_FROM_EMAIL", ""),
+			sendGrid: sendGridConfig{
+				apiKey: env.GetString("SENDGRID_API_KEY", ""),
+			},
 		},
 	}
 	db, err := db.New(cfg.db.addr, cfg.db.maxOpenConn, cfg.db.maxIdleConn, cfg.db.maxIdleTime)
@@ -73,11 +79,13 @@ func main() {
 		}
 	}()
 	store := store.NewPostgresStorage(db)
+	mailer := mailer.NewSendGrid(cfg.mail.sendGrid.apiKey, cfg.mail.fromEmail)
 
 	app := &application{
 		config:  cfg,
 		storage: store,
 		logger:  logger,
+		mailer:  mailer,
 	}
 	mux := app.mount()
 	logger.Fatal(app.run(mux))
