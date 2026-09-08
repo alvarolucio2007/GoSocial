@@ -93,7 +93,7 @@ func (app *application) deleteUserHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 	ctx := r.Context()
-	if err := app.storage.Users.Delete(ctx, int(id)); err != nil {
+	if err := app.storage.Users.Delete(ctx, id); err != nil {
 		switch {
 		case errors.Is(err, store.ErrPostNotFound):
 			app.notFoundError(w, r, err)

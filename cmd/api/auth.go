@@ -3,15 +3,17 @@ package main
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 	"net/http"
 	"uuid"
 
+	"github.com/alvarolucio2007/GoSocial/internal/mailer"
 	"github.com/alvarolucio2007/GoSocial/internal/store"
 )
 
 type RegisterUserPayload struct {
 	Username string `json:"username" validate:"required,max=100"`
-	Email    string `json:"email" validate:"required,max=255"`
+	Email    string `json:"email" validate:"email,required,max=255"`
 	Password string `json:"password" validate:"required,min=3,max=72"`
 }
 
@@ -70,8 +72,26 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		User:  user,
 		Token: plainToken,
 	}
+	isProdEnv := app.config.env == "production"
+	activationURL := fmt.Sprintf("%s/confirm/%s", app.config.frontendURL, plainToken)
+	vars := struct {
+		Username      string
+		ActivationURL string
+	}{
+		Username:      user.Username,
+		ActivationURL: activationURL,
+	}
 
-	// TODO: Send e-mail
+	status, err := app.mailer.Send(mailer.UserWelcomeTemplate, user.Username, user.Email, vars, !isProdEnv)
+	if err != nil {
+		app.logger.Errorw("error sending welcome email", "error", err)
+		if err := app.storage.Users.Delete(ctx, user.ID); err != nil {
+			app.logger.Errorw("error deleting user", "error", err)
+		}
+		app.internalServerError(w, r, err)
+		return
+	}
+	app.logger.Infow("Email sent", "status code", status)
 	if err := app.jsonResponse(w, http.StatusCreated, userWithToken); err != nil {
 		app.internalServerError(w, r, err)
 		return

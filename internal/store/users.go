@@ -28,7 +28,7 @@ type UserRepository interface {
 	Create(ctx context.Context, tx *sql.Tx, user *User) error
 	Read(ctx context.Context, userID int) (*User, error)
 	Update(ctx context.Context, user *User) error
-	Delete(ctx context.Context, userID int) error
+	Delete(ctx context.Context, userID int64) error
 	CreateAndInvite(ctx context.Context, user *User, token string, exp time.Duration) error
 	Activate(ctx context.Context, token string) error
 }
@@ -129,11 +129,23 @@ func (s *UserStore) Update(ctx context.Context, user *User) error {
 	return nil
 }
 
-func (s *UserStore) Delete(ctx context.Context, idUser int) error {
+func (s *UserStore) Delete(ctx context.Context, userID int64) error {
+	return withTx(s.db, ctx, func(tx *sql.Tx) error {
+		if err := s.delete(ctx, tx, userID); err != nil {
+			return err
+		}
+		if err := s.deleteUserInvitations(ctx, tx, userID); err != nil {
+			return err
+		}
+		return nil
+	})
+}
+
+func (s *UserStore) delete(ctx context.Context, tx *sql.Tx, userID int64) error {
 	query := `DELETE FROM users WHERE id=$1`
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeout)
 	defer cancel()
-	res, err := s.db.ExecContext(ctx, query, idUser)
+	res, err := tx.ExecContext(ctx, query, userID)
 	if err != nil {
 		return err
 	}
