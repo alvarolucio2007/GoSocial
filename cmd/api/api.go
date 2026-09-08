@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/alvarolucio2007/GoSocial/docs" // required to generate swagger docs
+	"github.com/alvarolucio2007/GoSocial/internal/auth"
 	"github.com/alvarolucio2007/GoSocial/internal/mailer"
 	"github.com/alvarolucio2007/GoSocial/internal/store"
 	"github.com/go-chi/chi/v5"
@@ -15,10 +16,11 @@ import (
 )
 
 type application struct {
-	config  config
-	storage store.Storage
-	logger  *zap.SugaredLogger
-	mailer  mailer.Client
+	config        config
+	storage       store.Storage
+	logger        *zap.SugaredLogger
+	mailer        mailer.Client
+	authenticator auth.Authenticator
 }
 type config struct {
 	addr        string
@@ -31,6 +33,11 @@ type config struct {
 }
 type authConfig struct {
 	basic basicConfig
+	token tokenConfig
+}
+type tokenConfig struct {
+	secret []byte
+	exp    time.Duration
 }
 type basicConfig struct {
 	user string
@@ -94,6 +101,7 @@ func (app *application) mount() http.Handler {
 		})
 		r.Route("/authentication", func(r chi.Router) {
 			r.Post("/user", app.registerUserHandler)
+			r.Post("/token", app.createTokenHandler)
 		})
 	})
 	return r
