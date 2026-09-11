@@ -609,8 +609,7 @@
             "type": "object",
             "required": [
                 "content",
-                "title",
-                "user_id"
+                "title"
             ],
             "properties": {
                 "content": {
@@ -626,9 +625,6 @@
                 "title": {
                     "type": "string",
                     "maxLength": 100
-                },
-                "user_id": {
-                    "type": "integer"
                 }
             }
         },

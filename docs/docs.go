@@ -617,8 +617,7 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "content",
-                "title",
-                "user_id"
+                "title"
             ],
             "properties": {
                 "content": {
@@ -634,9 +633,6 @@ const docTemplate = `{
                 "title": {
                     "type": "string",
                     "maxLength": 100
-                },
-                "user_id": {
-                    "type": "integer"
                 }
             }
         },

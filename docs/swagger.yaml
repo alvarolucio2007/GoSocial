@@ -12,12 +12,9 @@ definitions:
       title:
         maxLength: 100
         type: string
-      user_id:
-        type: integer
     required:
     - content
     - title
-    - user_id
     type: object
   cmd_api.CreateUserTokenPayload:
     properties:
