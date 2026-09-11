@@ -5,6 +5,7 @@ type MockStorage struct {
 	Users     UserRepository
 	Comments  CommentRepository
 	Followers FollowerRepository
+	Roles     RolesRepository
 }
 
 func NewMockStorage(mapPost map[int]*Post, mapUser map[int]*User, mapComments map[int]*Comment) MockStorage {

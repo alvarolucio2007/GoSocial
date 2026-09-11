@@ -87,7 +87,6 @@ func (s *PostStore) Update(ctx context.Context, post *Post) error {
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeout)
 	defer cancel()
 	updateTime := time.Now()
-	log.Println(post.Tags)
 	err := s.db.QueryRowContext(ctx, query, post.Title, post.Content, post.Tags, updateTime, post.ID, post.Version).Scan(&post.Version)
 	if err != nil {
 		switch {

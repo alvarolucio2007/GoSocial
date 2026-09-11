@@ -147,8 +147,19 @@ func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request
 	var payload UpdatePostPayload
 	if err := readJSON(w, r, &payload); err != nil {
 		app.badRequestError(w, r, err)
+		return
 	}
-	if err := app.storage.Posts.Update(r.Context(), post); err != nil {
+	if payload.Title != "" {
+		post.Title = payload.Title
+	}
+	if payload.Content != "" {
+		post.Content = payload.Content
+	}
+	if payload.Tags != nil {
+		post.Tags = payload.Tags
+	}
+	ctx := r.Context()
+	if err := app.storage.Posts.Update(ctx, post); err != nil {
 		app.internalServerError(w, r, err)
 		return
 	}
@@ -173,7 +184,8 @@ func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request
 //	@Router			/posts/{id} [delete]
 func (app *application) deletePostHandler(w http.ResponseWriter, r *http.Request) {
 	post := getPostFromCtx(r)
-	if err := app.storage.Posts.Delete(r.Context(), int(post.ID)); err != nil {
+	ctx := r.Context()
+	if err := app.storage.Posts.Delete(ctx, int(post.ID)); err != nil {
 		switch {
 		case errors.Is(err, store.ErrPostNotFound):
 			app.notFoundError(w, r, err)
