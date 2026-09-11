@@ -72,6 +72,10 @@ definitions:
         type: integer
       is_active:
         type: boolean
+      role:
+        $ref: '#/definitions/github_com_alvarolucio2007_GoSocial_internal_store.Role'
+      role_id:
+        type: integer
       token:
         type: string
       username:
@@ -148,6 +152,28 @@ definitions:
       version:
         type: integer
     type: object
+  github_com_alvarolucio2007_GoSocial_internal_store.Role:
+    properties:
+      role_description:
+        type: string
+      role_id:
+        type: integer
+      role_level:
+        $ref: '#/definitions/github_com_alvarolucio2007_GoSocial_internal_store.RoleLevel'
+      role_name:
+        type: string
+    type: object
+  github_com_alvarolucio2007_GoSocial_internal_store.RoleLevel:
+    enum:
+    - 1
+    - 2
+    - 3
+    format: int32
+    type: integer
+    x-enum-varnames:
+    - LevelUser
+    - LevelMod
+    - LevelAdmin
   github_com_alvarolucio2007_GoSocial_internal_store.User:
     properties:
       created_at:
@@ -158,6 +184,10 @@ definitions:
         type: integer
       is_active:
         type: boolean
+      role:
+        $ref: '#/definitions/github_com_alvarolucio2007_GoSocial_internal_store.Role'
+      role_id:
+        type: integer
       username:
         type: string
     type: object

@@ -717,6 +717,12 @@ const docTemplate = `{
                 "is_active": {
                     "type": "boolean"
                 },
+                "role": {
+                    "$ref": "#/definitions/github_com_alvarolucio2007_GoSocial_internal_store.Role"
+                },
+                "role_id": {
+                    "type": "integer"
+                },
                 "token": {
                     "type": "string"
                 },
@@ -833,6 +839,37 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_alvarolucio2007_GoSocial_internal_store.Role": {
+            "type": "object",
+            "properties": {
+                "role_description": {
+                    "type": "string"
+                },
+                "role_id": {
+                    "type": "integer"
+                },
+                "role_level": {
+                    "$ref": "#/definitions/github_com_alvarolucio2007_GoSocial_internal_store.RoleLevel"
+                },
+                "role_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_alvarolucio2007_GoSocial_internal_store.RoleLevel": {
+            "type": "integer",
+            "format": "int32",
+            "enum": [
+                1,
+                2,
+                3
+            ],
+            "x-enum-varnames": [
+                "LevelUser",
+                "LevelMod",
+                "LevelAdmin"
+            ]
+        },
         "github_com_alvarolucio2007_GoSocial_internal_store.User": {
             "type": "object",
             "properties": {
@@ -847,6 +884,12 @@ const docTemplate = `{
                 },
                 "is_active": {
                     "type": "boolean"
+                },
+                "role": {
+                    "$ref": "#/definitions/github_com_alvarolucio2007_GoSocial_internal_store.Role"
+                },
+                "role_id": {
+                    "type": "integer"
                 },
                 "username": {
                     "type": "string"
