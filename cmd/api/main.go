@@ -1,8 +1,10 @@
 package main
 
 import (
+	"encoding/base64"
 	"time"
 
+	"github.com/alvarolucio2007/GoSocial/internal/auth"
 	"github.com/alvarolucio2007/GoSocial/internal/db"
 	"github.com/alvarolucio2007/GoSocial/internal/env"
 	"github.com/alvarolucio2007/GoSocial/internal/mailer"
@@ -36,7 +38,6 @@ func main() {
 	logger := zap.Must(cfg_zap.Build(
 		zap.AddStacktrace(zapcore.FatalLevel),
 	)).Sugar()
-
 	defer func() {
 		if err := logger.Sync(); err != nil {
 			logger.Errorf("Couldn't sync logger: %s", err)
@@ -49,7 +50,11 @@ func main() {
 	if err != nil {
 		logger.Errorf("couldn't parse maxIdleTime, error: %v", err) // might want to deal w this later oh well
 	}
-
+	secretB64 := env.GetString("AUTH_TOKEN_SECRET", "")
+	secret, err := base64.StdEncoding.DecodeString(secretB64)
+	if err != nil {
+		logger.Panicw("coudln't decode the string", "error", err)
+	}
 	cfg := config{
 		addr: env.GetString("ADDR", ":8080"),
 		db: dbConfig{
@@ -68,6 +73,16 @@ func main() {
 				apiKey: env.GetString("SENDGRID_API_KEY", ""),
 			},
 		},
+		auth: authConfig{
+			basic: basicConfig{
+				user: env.GetString("AUTH_BASIC_USER", "admin"),
+				pass: env.GetString("AUTH_BASIC_PASS", "root"),
+			},
+			token: tokenConfig{
+				secret: secret,
+				exp:    15 * time.Minute,
+			},
+		},
 	}
 	db, err := db.New(cfg.db.addr, cfg.db.maxOpenConn, cfg.db.maxIdleConn, cfg.db.maxIdleTime)
 	if err != nil {
@@ -80,13 +95,19 @@ func main() {
 	}()
 	store := store.NewPostgresStorage(db)
 	mailer := mailer.NewSendGrid(cfg.mail.sendGrid.apiKey, cfg.mail.fromEmail)
+	pasetoAuthenticator, err := auth.NewPasetoAuthenticator(string(cfg.auth.token.secret))
+	if err != nil {
+		logger.Panicf("PANIC: couldn't create PASETO authenticator, error: %v", err)
+	}
 
 	app := &application{
-		config:  cfg,
-		storage: store,
-		logger:  logger,
-		mailer:  mailer,
+		config:        cfg,
+		storage:       store,
+		logger:        logger,
+		mailer:        mailer,
+		authenticator: pasetoAuthenticator,
 	}
+
 	mux := app.mount()
 	logger.Fatal(app.run(mux))
 }

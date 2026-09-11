@@ -12,12 +12,22 @@ definitions:
       title:
         maxLength: 100
         type: string
-      user_id:
-        type: integer
     required:
     - content
     - title
-    - user_id
+    type: object
+  cmd_api.CreateUserTokenPayload:
+    properties:
+      email:
+        maxLength: 255
+        type: string
+      password:
+        maxLength: 72
+        minLength: 3
+        type: string
+    required:
+    - email
+    - password
     type: object
   cmd_api.FollowUser:
     properties:
@@ -163,6 +173,37 @@ info:
   termsOfService: http://swagger.io/terms/
   title: GoSocial API
 paths:
+  /authentication/token:
+    post:
+      consumes:
+      - application/json
+      description: Creates a token for the user
+      parameters:
+      - description: User credentials
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/cmd_api.CreateUserTokenPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User registered
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Creates a token
+      tags:
+      - authentication
   /authentication/user:
     post:
       consumes:

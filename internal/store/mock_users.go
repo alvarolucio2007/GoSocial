@@ -62,3 +62,7 @@ func (m *MockUserRepository) CreateAndInvite(ctx context.Context, user *User, to
 func (m *MockUserRepository) Activate(ctx context.Context, token string) error {
 	return nil
 }
+
+func (m *MockUserRepository) GetByEmail(ctx context.Context, email string) (*User, error) {
+	return nil, nil
+}

@@ -27,6 +27,7 @@ type UserStore struct {
 type UserRepository interface {
 	Create(ctx context.Context, tx *sql.Tx, user *User) error
 	Read(ctx context.Context, userID int) (*User, error)
+	GetByEmail(ctx context.Context, email string) (*User, error)
 	Update(ctx context.Context, user *User) error
 	Delete(ctx context.Context, userID int64) error
 	CreateAndInvite(ctx context.Context, user *User, token string, exp time.Duration) error
@@ -89,7 +90,7 @@ func (s *UserStore) Create(ctx context.Context, tx *sql.Tx, user *User) error {
 var ErrUserNotFound = errors.New("user not found")
 
 func (s *UserStore) Read(ctx context.Context, idUser int) (*User, error) {
-	query := `SELECT id,username,email,password,created_at FROM users WHERE id = $1`
+	query := `SELECT id,username,email,password,created_at FROM users WHERE id = $1 AND is_active = true`
 	var u User
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeout)
@@ -110,7 +111,8 @@ func (s *UserStore) Update(ctx context.Context, user *User) error {
 		username=COALESCE(NULLIF($1,''),username),
 		email=COALESCE(NULLIF($2,''),email),
 		password=COALESCE(NULLIF($3,'\x'::bytea),password)
-	WHERE id=$4
+	WHERE id=$4 AND is_active = true
+	
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeout)
@@ -242,4 +244,23 @@ func (s *UserStore) deleteUserInvitations(ctx context.Context, tx *sql.Tx, userI
 		return err
 	}
 	return nil
+}
+
+func (s *UserStore) GetByEmail(ctx context.Context, email string) (*User, error) {
+	query := `SELECT id,username,email,password,created_at FROM users WHERE email=$1 AND is_active = true`
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeout)
+	defer cancel()
+	user := &User{}
+	err := s.db.QueryRowContext(ctx, query, email).Scan(
+		&user.ID, &user.Username, &user.Email, &user.Password.hash, &user.CreatedAt,
+	)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return nil, ErrUserNotFound
+		default:
+			return nil, err
+		}
+	}
+	return user, nil
 }

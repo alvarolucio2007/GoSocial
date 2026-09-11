@@ -47,7 +47,6 @@ type CreatePostPayload struct {
 	Title   string   `json:"title" validate:"required,max=100"`
 	Content string   `json:"content" validate:"required,max=1000"`
 	Tags    []string `json:"tags"`
-	UserID  int      `json:"user_id" validate:"required"`
 }
 
 // CreatePost godoc
@@ -73,11 +72,12 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 	if err := Validate.Struct(payload); err != nil {
 		app.badRequestError(w, r, err)
 	}
+	user := getUserFromContext(r)
 	post := &store.Post{
 		Title:   payload.Title,
 		Content: payload.Content,
 		Tags:    payload.Tags,
-		UserID:  int64(payload.UserID),
+		UserID:  user.ID,
 	}
 	if post.Tags == nil {
 		post.Tags = []string{}
