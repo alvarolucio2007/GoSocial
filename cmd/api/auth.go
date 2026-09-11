@@ -138,16 +138,27 @@ func (app *application) createTokenHandler(w http.ResponseWriter, r *http.Reques
 		}
 		return
 	}
+	isSame, err := user.Password.Compare(payload.Password)
+	if err != nil {
+		app.unauthorizedError(w, r, err)
+		return
+	}
+	if !isSame {
+		app.unauthorizedError(w, r, fmt.Errorf("unauthorized"))
+	}
 	// generate token
-	claims, err := auth.NewClaims(user.Username, app.config.auth.token.exp) // TODO: Implement custom durations later
+	claims, err := auth.NewClaims(user.Email, app.config.auth.token.exp) // TODO: Implement custom durations later
 	if err != nil {
 		app.internalServerError(w, r, err)
+		return
 	}
 	token, err := app.authenticator.CreateToken(*claims)
 	if err != nil {
 		app.internalServerError(w, r, err)
+		return
 	}
 	if err := app.jsonResponse(w, http.StatusCreated, token); err != nil {
 		app.internalServerError(w, r, err)
+		return
 	}
 }
