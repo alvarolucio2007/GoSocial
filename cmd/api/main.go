@@ -80,7 +80,7 @@ func main() {
 			},
 			token: tokenConfig{
 				secret: secret,
-				exp:    15 * time.Minute,
+				exp:    24 * time.Hour,
 			},
 		},
 	}
