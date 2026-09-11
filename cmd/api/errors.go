@@ -46,3 +46,10 @@ func (app *application) unauthorizedError(w http.ResponseWriter, r *http.Request
 		app.logger.Errorf("error while attempting function writeJSONError inside unauthorizedError %v", err)
 	}
 }
+
+func (app *application) forbiddenError(w http.ResponseWriter, r *http.Request) {
+	app.logger.Warnw("unauthorized error", "method", r.Method, "path", r.URL.Path)
+	if err := writeJSONError(w, http.StatusForbidden, "forbidden"); err != nil {
+		app.logger.Errorf("error while attempting function writeJSONError inside unauthorizedError %v", err)
+	}
+}
