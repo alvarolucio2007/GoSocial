@@ -52,6 +52,9 @@ func main() {
 	}
 	secretB64 := env.GetString("AUTH_TOKEN_SECRET", "")
 	secret, err := base64.StdEncoding.DecodeString(secretB64)
+	if err != nil {
+		logger.Panicw("coudln't decode the string", "error", err)
+	}
 	cfg := config{
 		addr: env.GetString("ADDR", ":8080"),
 		db: dbConfig{
