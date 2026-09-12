@@ -103,7 +103,11 @@ func main() {
 	if cfg.redisCfg.enabled {
 		rdb = cache.New(cfg.redisCfg.address, cfg.redisCfg.password, cfg.redisCfg.db)
 		logger.Info("redis cache connection established")
-		defer rdb.Close()
+		defer func() {
+			if err := rdb.Close(); err != nil {
+				logger.Errorf("couldn't close the cache connection: %v\n", err)
+			}
+		}()
 	}
 	store := store.NewPostgresStorage(db)
 	cacheStorage := cache.NewRedisStorage(rdb)
