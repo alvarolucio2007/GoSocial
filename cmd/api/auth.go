@@ -150,7 +150,7 @@ func (app *application) createTokenHandler(w http.ResponseWriter, r *http.Reques
 		app.unauthorizedError(w, r, fmt.Errorf("unauthorized"))
 	}
 	// generate token
-	claims, err := auth.NewClaims(user.Email, app.config.auth.token.exp) // TODO: Implement custom durations later
+	claims, err := auth.NewClaims(user.Email, app.config.auth.token.exp, int(user.ID)) // TODO: Implement custom durations later
 	if err != nil {
 		app.internalServerError(w, r, err)
 		return
