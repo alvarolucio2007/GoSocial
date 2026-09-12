@@ -32,17 +32,29 @@ func GetString(key, fallback string) string {
 	return val
 }
 
-func GetInt(key string, fallback int) (int, bool) {
+func GetInt(key string, fallback int) int {
 	if err := load(); err != nil {
 		log.Print("Warning: .env not found; Using fallback variables")
 	}
 	val, ok := os.LookupEnv(key)
 	if !ok {
-		return fallback, false
+		return fallback
 	}
 	valAsInt, err := strconv.Atoi(val)
 	if err != nil {
-		return fallback, false
+		return fallback
 	}
-	return valAsInt, true
+	return valAsInt
+}
+
+func GetBool(key string, fallback bool) bool {
+	val, ok := os.LookupEnv(key)
+	if !ok {
+		return fallback
+	}
+	boolVal, err := strconv.ParseBool(val)
+	if err != nil {
+		return fallback
+	}
+	return boolVal
 }
