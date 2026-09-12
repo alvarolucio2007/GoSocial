@@ -9,6 +9,8 @@ import (
 	"github.com/alvarolucio2007/GoSocial/internal/env"
 	"github.com/alvarolucio2007/GoSocial/internal/mailer"
 	"github.com/alvarolucio2007/GoSocial/internal/store"
+	"github.com/alvarolucio2007/GoSocial/internal/store/cache"
+	"github.com/redis/go-redis/v9"
 	_ "github.com/swaggo/http-swagger/v2"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -44,8 +46,6 @@ func main() {
 		}
 	}()
 
-	maxOpenConn, _ := env.GetInt("DB_MAX_OPEN_CONN", 30)
-	maxIdleConn, _ := env.GetInt("DB_MAX_IDLE_CONN", 30)
 	maxIdleTime, err := time.ParseDuration(env.GetString("DB_MAX_IDLE_TIME", "15m"))
 	if err != nil {
 		logger.Errorf("couldn't parse maxIdleTime, error: %v", err) // might want to deal w this later oh well
@@ -59,11 +59,17 @@ func main() {
 		addr: env.GetString("ADDR", ":8080"),
 		db: dbConfig{
 			addr:        env.GetString("DB_ADDR", "postgres://admin:admin@localhost/social?sslmode=disable"),
-			maxOpenConn: maxOpenConn,
-			maxIdleConn: maxIdleConn,
+			maxOpenConn: env.GetInt("DB_MAX_OPEN_CONN", 30),
+			maxIdleConn: env.GetInt("DB_MAX_IDLE_CONN", 30),
 			maxIdleTime: maxIdleTime,
 		},
-		env:         env.GetString("ENV", "development"),
+		env: env.GetString("ENV", "development"),
+		redisCfg: redisConfig{
+			address:  env.GetString("REDIS_ADDR", "localhost:6379"),
+			password: env.GetString("REDIS_PW", ""),
+			db:       env.GetInt("REDIS_DB", 0),
+			enabled:  env.GetBool("REDIS_ENABLED", false),
+		},
 		apiURL:      env.GetString("EXTERNAL_URL", "localhost:8080"),
 		frontendURL: env.GetString("FRONTEND_URL", "http://localhost:4000"),
 		mail: mailConfig{
@@ -93,7 +99,18 @@ func main() {
 			logger.Errorf("couldn't close the database: %v\n", err)
 		}
 	}()
+	var rdb *redis.Client
+	if cfg.redisCfg.enabled {
+		rdb = cache.New(cfg.redisCfg.address, cfg.redisCfg.password, cfg.redisCfg.db)
+		logger.Info("redis cache connection established")
+		defer func() {
+			if err := rdb.Close(); err != nil {
+				logger.Errorf("couldn't close the cache connection: %v\n", err)
+			}
+		}()
+	}
 	store := store.NewPostgresStorage(db)
+	cacheStorage := cache.NewRedisStorage(rdb)
 	mailer := mailer.NewSendGrid(cfg.mail.sendGrid.apiKey, cfg.mail.fromEmail)
 	pasetoAuthenticator, err := auth.NewPasetoAuthenticator(string(cfg.auth.token.secret))
 	if err != nil {
@@ -103,6 +120,7 @@ func main() {
 	app := &application{
 		config:        cfg,
 		storage:       store,
+		cacheStorage:  cacheStorage,
 		logger:        logger,
 		mailer:        mailer,
 		authenticator: pasetoAuthenticator,

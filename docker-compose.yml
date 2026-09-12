@@ -10,5 +10,25 @@ services:
      - db-data:/var/lib/postgresql/
     ports:
      - "5432:5432"
+  cache:
+    image: redis:8-alpine
+    restart: unless-stopped
+    container_name: redis-cache
+    ports:
+     - "6379:6379"
+    command: redis-server --save 60 1 --loglevel warning
+
+  redis-commander:
+    container_name: redis-commander
+    hostname: redis-commander
+    image: rediscommander/redis-commander:latest
+    environment:
+      - REDIS_HOST=cache
+    ports:
+      - "127.0.0.1:8081:8081"
+    depends_on:
+     - cache
+    restart: unless-stopped
+      
 volumes:
   db-data:

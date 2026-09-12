@@ -96,12 +96,12 @@ func (s *UserStore) Create(ctx context.Context, tx *sql.Tx, user *User) error {
 var ErrUserNotFound = errors.New("user not found")
 
 func (s *UserStore) Read(ctx context.Context, idUser int) (*User, error) {
-	query := `SELECT id,username,email,password,created_at FROM users WHERE id = $1 AND is_active = true`
+	query := `SELECT u.id,u.username,u.email,u.password,u.created_at,u.is_active,u.role_id,r.name,r.level,r.description FROM users u INNER JOIN roles r ON u.role_id=r.id WHERE u.id = $1 AND u.is_active = true`
 	var u User
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeout)
 	defer cancel()
-	err := s.db.QueryRowContext(ctx, query, idUser).Scan(&u.ID, &u.Username, &u.Email, &u.Password.hash, &u.CreatedAt)
+	err := s.db.QueryRowContext(ctx, query, idUser).Scan(&u.ID, &u.Username, &u.Email, &u.Password.hash, &u.CreatedAt, &u.IsActive, &u.RoleID, &u.Role.Name, &u.Role.Level, &u.Role.Description)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrUserNotFound
 	}

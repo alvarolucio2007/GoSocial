@@ -19,17 +19,19 @@ type Authenticator interface {
 	VerifyToken(token string) (*Claims, error)
 }
 type Claims struct {
-	ID    uuid.UUID `json:"id"`
-	Email string    `json:"email"`
+	ID     uuid.UUID `json:"id"`
+	Email  string    `json:"email"`
+	UserID int       `json:"user_id"`
 	jwt.RegisteredClaims
 }
 
-func NewClaims(email string, duration time.Duration) (*Claims, error) {
+func NewClaims(email string, duration time.Duration, userID int) (*Claims, error) {
 	tokenID := uuid.New()
 	now := time.Now()
 	payload := &Claims{
-		ID:    tokenID,
-		Email: email,
+		ID:     tokenID,
+		Email:  email,
+		UserID: userID,
 		RegisteredClaims: jwt.RegisteredClaims{
 			IssuedAt:  jwt.NewNumericDate(now),
 			ExpiresAt: jwt.NewNumericDate(now.Add(duration)),

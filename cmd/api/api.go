@@ -9,6 +9,7 @@ import (
 	"github.com/alvarolucio2007/GoSocial/internal/auth"
 	"github.com/alvarolucio2007/GoSocial/internal/mailer"
 	"github.com/alvarolucio2007/GoSocial/internal/store"
+	"github.com/alvarolucio2007/GoSocial/internal/store/cache"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
@@ -21,6 +22,7 @@ type application struct {
 	logger        *zap.SugaredLogger
 	mailer        mailer.Client
 	authenticator auth.Authenticator
+	cacheStorage  cache.Storage
 }
 type config struct {
 	addr        string
@@ -30,6 +32,13 @@ type config struct {
 	mail        mailConfig
 	frontendURL string
 	auth        authConfig
+	redisCfg    redisConfig
+}
+type redisConfig struct {
+	address  string
+	password string
+	db       int
+	enabled  bool
 }
 type authConfig struct {
 	basic basicConfig
