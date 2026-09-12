@@ -459,8 +459,13 @@ const docTemplate = `{
                 }
             }
         },
-        "/users/{id}": {
+        "/users/{userID}/": {
             "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Read an user account by ID",
                 "consumes": [
                     "application/json"
@@ -476,7 +481,7 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "User ID",
-                        "name": "id",
+                        "name": "userID",
                         "in": "path",
                         "required": true
                     }
