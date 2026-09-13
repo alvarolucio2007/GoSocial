@@ -112,7 +112,7 @@ func main() {
 	store := store.NewPostgresStorage(db)
 	cacheStorage := cache.NewRedisStorage(rdb)
 	mailer := mailer.NewSendGrid(cfg.mail.sendGrid.apiKey, cfg.mail.fromEmail)
-	pasetoAuthenticator, err := auth.NewPasetoAuthenticator(string(cfg.auth.token.secret))
+	pasetoAuthenticator, err := auth.NewPasetoAuthenticator(cfg.auth.token.secret)
 	if err != nil {
 		logger.Panicf("PANIC: couldn't create PASETO authenticator, error: %v", err)
 	}
