@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"errors"
 	"fmt"
 
 	"golang.org/x/crypto/chacha20poly1305"
@@ -13,13 +14,15 @@ type PasetoAuthenticator struct {
 	symmetricKey []byte
 }
 
-func NewPasetoAuthenticator(symmetricKey string) (*PasetoAuthenticator, error) {
+var ErrInvalidKeySize = errors.New("invalid symmetric key size: must be exactly 32 characters")
+
+func NewPasetoAuthenticator(symmetricKey []byte) (*PasetoAuthenticator, error) {
 	if len(symmetricKey) != chacha20poly1305.KeySize {
 		return nil, fmt.Errorf("invalid symmetric key size: must be exactly %d characters", chacha20poly1305.KeySize)
 	}
 	auth := &PasetoAuthenticator{
 		paseto:       paseto.NewV2(),
-		symmetricKey: []byte(symmetricKey),
+		symmetricKey: symmetricKey,
 	}
 	return auth, nil
 }
