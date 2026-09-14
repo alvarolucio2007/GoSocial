@@ -13,6 +13,7 @@ import (
 	"github.com/alvarolucio2007/GoSocial/docs" // required to generate swagger docs
 	"github.com/alvarolucio2007/GoSocial/internal/auth"
 	"github.com/alvarolucio2007/GoSocial/internal/mailer"
+	"github.com/alvarolucio2007/GoSocial/internal/ratelimiter"
 	"github.com/alvarolucio2007/GoSocial/internal/store"
 	"github.com/alvarolucio2007/GoSocial/internal/store/cache"
 	"github.com/go-chi/chi/v5"
@@ -28,6 +29,7 @@ type application struct {
 	mailer        mailer.Client
 	authenticator auth.Authenticator
 	cacheStorage  cache.Storage
+	rateLimiter   ratelimiter.Limiter
 }
 type config struct {
 	addr        string
@@ -38,6 +40,7 @@ type config struct {
 	frontendURL string
 	auth        authConfig
 	redisCfg    redisConfig
+	rateLimiter ratelimiter.Config
 }
 type redisConfig struct {
 	address  string
@@ -79,6 +82,7 @@ func (app *application) mount() http.Handler {
 	r.Use(middleware.ClientIPFromRemoteAddr)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+	r.Use(app.RateLimiterMiddleware)
 
 	r.Use(middleware.Timeout(60 * time.Second))
 

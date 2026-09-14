@@ -53,3 +53,11 @@ func (app *application) forbiddenError(w http.ResponseWriter, r *http.Request) {
 		app.logger.Errorf("error while attempting function writeJSONError inside unauthorizedError %v", err)
 	}
 }
+
+func (app *application) rateLimitExceededError(w http.ResponseWriter, r *http.Request, retryAfter string) {
+	app.logger.Warnw("rate limit exceeded", "method", r.Method, "path", r.URL.Path)
+	w.Header().Set("Retry-After", retryAfter)
+	if err := writeJSONError(w, http.StatusTooManyRequests, "too many requests"); err != nil {
+		app.logger.Errorf("error while attempting function writeJSONError inside conflictError %v", err)
+	}
+}
