@@ -8,6 +8,7 @@ import (
 	"github.com/alvarolucio2007/GoSocial/internal/db"
 	"github.com/alvarolucio2007/GoSocial/internal/env"
 	"github.com/alvarolucio2007/GoSocial/internal/mailer"
+	"github.com/alvarolucio2007/GoSocial/internal/ratelimiter"
 	"github.com/alvarolucio2007/GoSocial/internal/store"
 	"github.com/alvarolucio2007/GoSocial/internal/store/cache"
 	"github.com/redis/go-redis/v9"
@@ -89,6 +90,11 @@ func main() {
 				exp:    24 * time.Hour,
 			},
 		},
+		rateLimiter: ratelimiter.Config{
+			RequestsPerTimeFrame: env.GetInt("RATELIMITER_REQUESTS_COUNT", 100),
+			TimeFrame:            5 * time.Second,
+			Enabled:              env.GetBool("RATE_LIMITER_ENABLED", true),
+		},
 	}
 	db, err := db.New(cfg.db.addr, cfg.db.maxOpenConn, cfg.db.maxIdleConn, cfg.db.maxIdleTime)
 	if err != nil {
@@ -116,6 +122,7 @@ func main() {
 	if err != nil {
 		logger.Panicf("PANIC: couldn't create PASETO authenticator, error: %v", err)
 	}
+	ratLim := ratelimiter.NewFixedWindowLimiter(cfg.rateLimiter.RequestsPerTimeFrame, cfg.rateLimiter.TimeFrame)
 
 	app := &application{
 		config:        cfg,
@@ -124,6 +131,7 @@ func main() {
 		logger:        logger,
 		mailer:        mailer,
 		authenticator: pasetoAuthenticator,
+		rateLimiter:   ratLim,
 	}
 
 	mux := app.mount()
