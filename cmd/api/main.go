@@ -91,7 +91,7 @@ func main() {
 			},
 		},
 		rateLimiter: ratelimiter.Config{
-			RequestsPerTimeFrame: env.GetInt("RATELIMITER_REQUESTS_COUNT", 100),
+			RequestsPerTimeFrame: env.GetInt("RATE_LIMITER_REQUESTS_COUNT", 100),
 			TimeFrame:            5 * time.Second,
 			Enabled:              env.GetBool("RATE_LIMITER_ENABLED", true),
 		},
