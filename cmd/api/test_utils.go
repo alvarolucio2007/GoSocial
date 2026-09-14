@@ -7,13 +7,12 @@ import (
 
 	"github.com/alvarolucio2007/GoSocial/internal/auth"
 	"github.com/alvarolucio2007/GoSocial/internal/store"
-	"github.com/alvarolucio2007/GoSocial/internal/store/cache"
 	"go.uber.org/zap"
 )
 
 func newTestApplication(t *testing.T) *application {
 	t.Helper()
-	logger := zap.NewNop().Sugar()
+	logger := zap.Must(zap.NewProduction()).Sugar()
 
 	mapPost := make(map[int]*store.Post)
 	mapUser := make(map[int]*store.User)
@@ -22,13 +21,11 @@ func newTestApplication(t *testing.T) *application {
 	mapRoles := make(map[int]*store.Role)
 	mockStorage := store.NewMockStorage(mapPost, mapUser, mapComments, mapFollowers, mapRoles)
 
-	mockCacheStorage := cache.NewMockCache(cache.MockCacheStore{})
-
 	mockAuth := auth.NewMockAuthenticator()
+
 	return &application{
 		logger:        logger,
 		storage:       mockStorage,
-		cacheStorage:  mockCacheStorage,
 		authenticator: mockAuth,
 	}
 }
