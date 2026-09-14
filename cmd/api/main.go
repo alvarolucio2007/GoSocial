@@ -2,6 +2,8 @@ package main
 
 import (
 	"encoding/base64"
+	"expvar"
+	"runtime"
 	"time"
 
 	"github.com/alvarolucio2007/GoSocial/internal/auth"
@@ -133,6 +135,14 @@ func main() {
 		authenticator: pasetoAuthenticator,
 		rateLimiter:   ratLim,
 	}
+	// metrics collected
+	expvar.NewString("version").Set(version)
+	expvar.Publish("database", expvar.Func(func() any {
+		return db.Stats()
+	}))
+	expvar.Publish("goroutines", expvar.Func(func() any {
+		return runtime.NumGoroutine()
+	}))
 
 	mux := app.mount()
 	logger.Fatal(app.run(mux))
