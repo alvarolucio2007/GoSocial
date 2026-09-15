@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.0](https://github.com/alvarolucio2007/GoSocial/compare/v1.0.0...v1.1.0) (2026-09-15)
+
+
+### Features
+
+* Adding dockerfile for the go project. ([d3c99db](https://github.com/alvarolucio2007/GoSocial/commit/d3c99dbfce1866c52c85b87a2ff19445336f9169))
+* Updating docker-compose to implement healthchecks for postgres and redis, and adding my go app into there. ([6df447f](https://github.com/alvarolucio2007/GoSocial/commit/6df447f241a678fb4957ee6a58e703816b9814f2))
+
 ## 1.0.0 (2026-09-15)
 
 
