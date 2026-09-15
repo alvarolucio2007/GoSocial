@@ -160,7 +160,7 @@ func TestFollowUserHandler(t *testing.T) {
 		rr := executeRequest(req, mux)
 		require.Equal(t, http.StatusUnauthorized, rr.Code)
 	})
-	t.Run("should allow following", func(t *testing.T) {
+	t.Run("should allow following of other users", func(t *testing.T) {
 		req, err := http.NewRequest(http.MethodPut, "/v1/users/2/follow", nil)
 		require.NoError(t, err)
 
@@ -172,5 +172,24 @@ func TestFollowUserHandler(t *testing.T) {
 
 		rr := executeRequest(req, mux)
 		require.Equal(t, http.StatusNoContent, rr.Code)
+
+		err = app.storage.Followers.Unfollow(context.Background(), 2, 1)
+		require.NoError(t, err)
+	})
+	t.Run("should not allow double following", func(t *testing.T) {
+		req, err := http.NewRequest(http.MethodPut, "/v1/users/2/follow", nil)
+		require.NoError(t, err)
+
+		claimsToken, err := auth.NewClaims("test@gmail.com", 10*time.Second, 1)
+		require.NoError(t, err)
+		testToken, err := app.authenticator.CreateToken(*claimsToken)
+		require.NoError(t, err)
+		req.Header.Set("Authorization", "Bearer "+testToken)
+
+		rr := executeRequest(req, mux)
+		require.Equal(t, http.StatusNoContent, rr.Code)
+
+		rr = executeRequest(req, mux)
+		require.Equal(t, http.StatusConflict, rr.Code)
 	})
 }
