@@ -13,8 +13,13 @@ type MockFollowerRepository struct {
 	followers map[FollowKey]struct{}
 }
 
+var ErrNotFollowing = errors.New("user isn't following")
+
 func (m *MockFollowerRepository) Follow(ctx context.Context, userID int64, followerID int64) error {
 	followKey := FollowKey{UserID: userID, FollowerID: followerID}
+	if _, exist := m.followers[followKey]; exist {
+		return ErrConflict
+	}
 	m.followers[followKey] = struct{}{}
 	return nil
 }
@@ -22,7 +27,7 @@ func (m *MockFollowerRepository) Follow(ctx context.Context, userID int64, follo
 func (m *MockFollowerRepository) Unfollow(ctx context.Context, userID int64, followerID int64) error {
 	followKey := FollowKey{UserID: userID, FollowerID: followerID}
 	if _, exist := m.followers[followKey]; !exist {
-		return errors.New("placeholder")
+		return ErrNotFollowing
 	}
 	delete(m.followers, followKey)
 	return nil
