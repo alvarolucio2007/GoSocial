@@ -2,7 +2,6 @@ package store
 
 import (
 	"context"
-	"errors"
 )
 
 type FollowKey struct {
@@ -13,9 +12,7 @@ type MockFollowerRepository struct {
 	followers map[FollowKey]struct{}
 }
 
-var ErrNotFollowing = errors.New("user isn't following")
-
-func (m *MockFollowerRepository) Follow(ctx context.Context, userID int64, followerID int64) error {
+func (m *MockFollowerRepository) Follow(ctx context.Context, userID, followerID int64) error {
 	followKey := FollowKey{UserID: userID, FollowerID: followerID}
 	if _, exist := m.followers[followKey]; exist {
 		return ErrConflict
@@ -24,10 +21,10 @@ func (m *MockFollowerRepository) Follow(ctx context.Context, userID int64, follo
 	return nil
 }
 
-func (m *MockFollowerRepository) Unfollow(ctx context.Context, userID int64, followerID int64) error {
+func (m *MockFollowerRepository) Unfollow(ctx context.Context, userID, followerID int64) error {
 	followKey := FollowKey{UserID: userID, FollowerID: followerID}
 	if _, exist := m.followers[followKey]; !exist {
-		return ErrNotFollowing
+		return ErrNotFound
 	}
 	delete(m.followers, followKey)
 	return nil
