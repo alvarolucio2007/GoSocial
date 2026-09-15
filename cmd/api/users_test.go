@@ -190,7 +190,7 @@ func TestFollowUserHandler(t *testing.T) {
 		require.Equal(t, http.StatusNoContent, rr.Code)
 
 		rr = executeRequest(req, mux)
-		require.Equal(t, http.StatusConflict, rr.Code)
+		require.Equal(t, http.StatusNotFound, rr.Code)
 	})
 }
 
@@ -203,7 +203,7 @@ func TestUnfollowUserHandler(t *testing.T) {
 	user2 := store.User{ID: 2, Username: "Test2", Email: "test2@gmail.com"}
 	err = app.storage.Users.Create(context.Background(), nil, &user2)
 	require.NoError(t, err)
-	err = app.storage.Followers.Follow(context.Background(), 1, 2)
+	err = app.storage.Followers.Follow(context.Background(), 2, 1)
 	require.NoError(t, err)
 	t.Run("should not allow unauthenticated requests", func(t *testing.T) {
 		req, err := http.NewRequest(http.MethodPut, "/v1/users/2/follow", nil)
@@ -211,7 +211,7 @@ func TestUnfollowUserHandler(t *testing.T) {
 		rr := executeRequest(req, mux)
 		require.Equal(t, http.StatusUnauthorized, rr.Code)
 	})
-	t.Run("should allow unfollowing of other users", func(t *testing.T) {
+	t.Run("should allow unfollowing of other users, and not unfollow twice", func(t *testing.T) {
 		req, err := http.NewRequest(http.MethodPut, "/v1/users/2/unfollow", nil)
 		require.NoError(t, err)
 
