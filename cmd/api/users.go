@@ -154,13 +154,11 @@ func (app *application) followUserHandler(w http.ResponseWriter, r *http.Request
 	if err := app.storage.Followers.Follow(ctx, followedID, followerUser.ID); err != nil {
 		switch err {
 		case store.ErrConflict:
-			app.conflictError(w, r, err)
-			return
+			app.notFoundError(w, r, err)
 		default:
-
 			app.internalServerError(w, r, err)
-			return
 		}
+		return
 	}
 	w.WriteHeader(http.StatusNoContent)
 }
@@ -180,15 +178,20 @@ func (app *application) followUserHandler(w http.ResponseWriter, r *http.Request
 //	@Security		ApiKeyAuth
 //	@Router			/users/{userID}/unfollow [put]
 func (app *application) unfollowUserHandler(w http.ResponseWriter, r *http.Request) {
-	unfollowedUser := getUserFromContext(r)
-	unfollowedID, err := strconv.ParseInt(chi.URLParam(r, "userID"), 10, 64)
+	followerUser := getUserFromContext(r)
+	followedID, err := strconv.ParseInt(chi.URLParam(r, "userID"), 10, 64)
 	if err != nil {
 		app.badRequestError(w, r, err)
 		return
 	}
 	ctx := r.Context()
-	if err := app.storage.Followers.Unfollow(ctx, unfollowedUser.ID, unfollowedID); err != nil {
-		app.internalServerError(w, r, err)
+	if err := app.storage.Followers.Unfollow(ctx, followedID, followerUser.ID); err != nil {
+		switch err {
+		case store.ErrNotFollowing:
+			app.notFoundError(w, r, err)
+		default:
+			app.internalServerError(w, r, err)
+		}
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)
