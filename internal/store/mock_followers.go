@@ -24,7 +24,7 @@ func (m *MockFollowerRepository) Follow(ctx context.Context, userID, followerID 
 func (m *MockFollowerRepository) Unfollow(ctx context.Context, userID, followerID int64) error {
 	followKey := FollowKey{UserID: userID, FollowerID: followerID}
 	if _, exist := m.followers[followKey]; !exist {
-		return ErrNotFound
+		return ErrNotFollowing
 	}
 	delete(m.followers, followKey)
 	return nil
