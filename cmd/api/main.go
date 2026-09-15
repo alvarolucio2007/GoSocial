@@ -19,7 +19,7 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-const version = "0.0.1"
+const version = ""
 
 //	@title			GoSocial API
 //	@description	This is a sample server GoSocial server.
