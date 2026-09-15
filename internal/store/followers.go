@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"database/sql"
+	"errors"
 
 	"github.com/jackc/pgx/v5/pgconn"
 )
@@ -16,11 +17,13 @@ type FollowerStore struct {
 	db *sql.DB
 }
 type FollowerRepository interface {
-	Follow(context.Context, int64, int64) error
-	Unfollow(context.Context, int64, int64) error
+	Follow(ctx context.Context, userID, followerID int64) error
+	Unfollow(ctx context.Context, userID, followerID int64) error
 }
 
-func (s *FollowerStore) Follow(ctx context.Context, followerID, userID int64) error {
+var ErrNotFollowing = errors.New("user is not following")
+
+func (s *FollowerStore) Follow(ctx context.Context, userID, followerID int64) error {
 	query := `INSERT INTO followers (user_id, follower_id) VALUES ($1, $2)`
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeout)
 	defer cancel()
@@ -34,10 +37,20 @@ func (s *FollowerStore) Follow(ctx context.Context, followerID, userID int64) er
 	return nil
 }
 
-func (s *FollowerStore) Unfollow(ctx context.Context, followerID, userID int64) error {
+func (s *FollowerStore) Unfollow(ctx context.Context, userID, followerID int64) error {
 	query := `DELETE FROM followers WHERE user_id=$1 AND follower_id=$2`
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeout)
 	defer cancel()
-	_, err := s.db.ExecContext(ctx, query, userID, followerID)
-	return err
+	res, err := s.db.ExecContext(ctx, query, userID, followerID)
+	if err != nil {
+		return err
+	}
+	count, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if count == 0 {
+		return ErrNotFollowing
+	}
+	return nil
 }

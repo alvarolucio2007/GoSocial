@@ -25,13 +25,6 @@ func (app *application) notFoundError(w http.ResponseWriter, r *http.Request, er
 	}
 }
 
-func (app *application) conflictError(w http.ResponseWriter, r *http.Request, err error) {
-	app.logger.Warnw("conflict error", "method", r.Method, "path", r.URL.Path, "error", err)
-	if err := writeJSONError(w, http.StatusConflict, "resource not found"); err != nil {
-		app.logger.Errorf("error while attempting function writeJSONError inside conflictError %v", err)
-	}
-}
-
 func (app *application) unauthorizedBasicError(w http.ResponseWriter, r *http.Request, err error) {
 	app.logger.Warnw("unauthorized basic error", "method", r.Method, "path", r.URL.Path, "error", err.Error())
 	w.Header().Set("WWW-Authenticate", `Basic realm="restricted", charset="UTF-8"`)

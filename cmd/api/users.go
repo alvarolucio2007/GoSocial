@@ -57,9 +57,9 @@ func (app *application) readUserHandler(w http.ResponseWriter, r *http.Request) 
 }
 
 type UpdateUserPayload struct {
-	Username string `json:"username" validate:"required,max=100"`
-	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required"`
+	Username string `json:"username" validate:"max=100"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
 func (app *application) updateUserHandler(w http.ResponseWriter, r *http.Request) {
@@ -82,8 +82,11 @@ func (app *application) updateUserHandler(w http.ResponseWriter, r *http.Request
 		Username: payload.Username,
 		Email:    payload.Email,
 	}
-	if err := user.Password.Set(payload.Password); err != nil {
-		app.internalServerError(w, r, err)
+	if payload.Password != "" {
+		if err := user.Password.Set(payload.Password); err != nil {
+			app.internalServerError(w, r, err)
+			return
+		}
 	}
 	ctx := r.Context()
 	if err := app.storage.Users.Update(ctx, user); err != nil {
@@ -148,16 +151,14 @@ func (app *application) followUserHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	ctx := r.Context()
-	if err := app.storage.Followers.Follow(ctx, followerUser.ID, followedID); err != nil {
+	if err := app.storage.Followers.Follow(ctx, followedID, followerUser.ID); err != nil {
 		switch err {
 		case store.ErrConflict:
-			app.conflictError(w, r, err)
-			return
+			app.notFoundError(w, r, err)
 		default:
-
 			app.internalServerError(w, r, err)
-			return
 		}
+		return
 	}
 	w.WriteHeader(http.StatusNoContent)
 }
@@ -177,15 +178,20 @@ func (app *application) followUserHandler(w http.ResponseWriter, r *http.Request
 //	@Security		ApiKeyAuth
 //	@Router			/users/{userID}/unfollow [put]
 func (app *application) unfollowUserHandler(w http.ResponseWriter, r *http.Request) {
-	unfollowedUser := getUserFromContext(r)
-	unfollowedID, err := strconv.ParseInt(chi.URLParam(r, "userID"), 10, 64)
+	followerUser := getUserFromContext(r)
+	followedID, err := strconv.ParseInt(chi.URLParam(r, "userID"), 10, 64)
 	if err != nil {
 		app.badRequestError(w, r, err)
 		return
 	}
 	ctx := r.Context()
-	if err := app.storage.Followers.Unfollow(ctx, unfollowedUser.ID, unfollowedID); err != nil {
-		app.internalServerError(w, r, err)
+	if err := app.storage.Followers.Unfollow(ctx, followedID, followerUser.ID); err != nil {
+		switch err {
+		case store.ErrNotFollowing:
+			app.notFoundError(w, r, err)
+		default:
+			app.internalServerError(w, r, err)
+		}
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)
