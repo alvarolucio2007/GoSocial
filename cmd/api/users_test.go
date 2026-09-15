@@ -88,4 +88,32 @@ func TestUpdateUser(t *testing.T) {
 		require.NoError(t, err)
 		require.True(t, isSame)
 	})
+	t.Run("should ignore blank fields", func(t *testing.T) {
+		body := UpdateUserPayload{Username: "blank", Email: "", Password: ""}
+		jsonBody, err := json.Marshal(body)
+		require.NoError(t, err)
+		req, err := http.NewRequest(http.MethodPut, "/v1/users/1", bytes.NewBuffer(jsonBody))
+		require.NoError(t, err)
+
+		claimsToken, err := auth.NewClaims("updated@gmail.com", 10*time.Second, 1)
+		require.NoError(t, err)
+		testToken, err := app.authenticator.CreateToken(*claimsToken)
+		require.NoError(t, err)
+
+		req.Header.Set("Authorization", "Bearer "+testToken)
+		rr := executeRequest(req, mux)
+		require.Equal(t, http.StatusOK, rr.Code)
+		var userResponse struct {
+			Data store.User `json:"data"`
+		}
+		err = json.NewDecoder(rr.Body).Decode(&userResponse)
+		require.NoError(t, err)
+		editedUser, err := app.storage.Users.Read(context.Background(), 1)
+		require.NoError(t, err)
+		require.Equal(t, "blank", userResponse.Data.Username)
+		require.Equal(t, "updated@gmail.com", editedUser.Email)
+		isSame, err := editedUser.Password.Compare("")
+		require.NoError(t, err)
+		require.True(t, isSame)
+	})
 }
