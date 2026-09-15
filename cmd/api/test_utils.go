@@ -17,7 +17,7 @@ func newTestApplication(t *testing.T) *application {
 	mapPost := make(map[int]*store.Post)
 	mapUser := make(map[int]*store.User)
 	mapComments := make(map[int]*store.Comment)
-	mapFollowers := make(map[int]*store.Follower)
+	mapFollowers := make(map[store.FollowKey]struct{})
 	mapRoles := make(map[int]*store.Role)
 	mockStorage := store.NewMockStorage(mapPost, mapUser, mapComments, mapFollowers, mapRoles)
 
