@@ -57,9 +57,9 @@ func (app *application) readUserHandler(w http.ResponseWriter, r *http.Request) 
 }
 
 type UpdateUserPayload struct {
-	Username string `json:"username" validate:"required,max=100"`
-	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required"`
+	Username string `json:"username" validate:"max=100"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
 func (app *application) updateUserHandler(w http.ResponseWriter, r *http.Request) {
