@@ -24,5 +24,6 @@ func (m *MockFollowerRepository) Unfollow(ctx context.Context, userID int64, fol
 	if _, exist := m.followers[followKey]; !exist {
 		return errors.New("placeholder")
 	}
-	delete(m.followers[followKey])
+	delete(m.followers, followKey)
+	return nil
 }
