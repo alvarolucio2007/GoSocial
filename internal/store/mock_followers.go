@@ -1,15 +1,28 @@
 package store
 
-import "context"
+import (
+	"context"
+	"errors"
+)
 
+type FollowKey struct {
+	UserID     int64
+	FollowerID int64
+}
 type MockFollowerRepository struct {
-	followers map[int]*Follower
+	followers map[FollowKey]struct{}
 }
 
-func (m *MockFollowerRepository) Follow(context.Context, int64, int64) error {
+func (m *MockFollowerRepository) Follow(ctx context.Context, userID int64, followerID int64) error {
+	followKey := FollowKey{UserID: userID, FollowerID: followerID}
+	m.followers[followKey] = struct{}{}
 	return nil
 }
 
-func (m *MockFollowerRepository) Unfollow(context.Context, int64, int64) error {
-	return nil
+func (m *MockFollowerRepository) Unfollow(ctx context.Context, userID int64, followerID int64) error {
+	followKey := FollowKey{UserID: userID, FollowerID: followerID}
+	if _, exist := m.followers[followKey]; !exist {
+		return errors.New("placeholder")
+	}
+	delete(m.followers[followKey])
 }
