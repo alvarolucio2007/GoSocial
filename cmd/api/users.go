@@ -82,8 +82,11 @@ func (app *application) updateUserHandler(w http.ResponseWriter, r *http.Request
 		Username: payload.Username,
 		Email:    payload.Email,
 	}
-	if err := user.Password.Set(payload.Password); err != nil {
-		app.internalServerError(w, r, err)
+	if payload.Password != "" {
+		if err := user.Password.Set(payload.Password); err != nil {
+			app.internalServerError(w, r, err)
+			return
+		}
 	}
 	ctx := r.Context()
 	if err := app.storage.Users.Update(ctx, user); err != nil {
