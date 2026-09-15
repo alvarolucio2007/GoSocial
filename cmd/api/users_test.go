@@ -112,8 +112,34 @@ func TestUpdateUser(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, "blank", userResponse.Data.Username)
 		require.Equal(t, "updated@gmail.com", editedUser.Email)
-		isSame, err := editedUser.Password.Compare("")
+		isSame, err := editedUser.Password.Compare("Updated")
 		require.NoError(t, err)
 		require.True(t, isSame)
+	})
+}
+
+func TestDeleteUser(t *testing.T) {
+	app := newTestApplication(t)
+	mux := app.mount()
+	user := store.User{ID: 1, Username: "Test", Email: "test@gmail.com"}
+	err := app.storage.Users.Create(context.Background(), nil, &user)
+	require.NoError(t, err)
+	t.Run("should not allow unauthenticated requests", func(t *testing.T) {
+		req, err := http.NewRequest(http.MethodDelete, "/v1/users/1", nil)
+		require.NoError(t, err)
+		rr := executeRequest(req, mux)
+		require.Equal(t, http.StatusUnauthorized, rr.Code)
+	})
+	t.Run("should allow authenticated requests and delete user", func(t *testing.T) {
+		req, err := http.NewRequest(http.MethodDelete, "/v1/users/1", nil)
+		require.NoError(t, err)
+		claimsToken, err := auth.NewClaims("test@gmail.com", 10*time.Second, 1)
+		require.NoError(t, err)
+
+		testToken, err := app.authenticator.CreateToken(*claimsToken)
+		require.NoError(t, err)
+		req.Header.Set("Authorization", "Bearer "+testToken)
+		rr := executeRequest(req, mux)
+		require.Equal(t, http.StatusNoContent, rr.Code)
 	})
 }
