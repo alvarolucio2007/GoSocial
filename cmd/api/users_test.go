@@ -74,6 +74,7 @@ func TestUpdateUser(t *testing.T) {
 
 		req.Header.Set("Authorization", "Bearer "+testToken)
 		rr := executeRequest(req, mux)
+		require.Equal(t, http.StatusOK, rr.Code)
 		var userResponse struct {
 			Data store.User `json:"data"`
 		}
