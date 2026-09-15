@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"net/http"
@@ -41,5 +42,22 @@ func TestGetUser(t *testing.T) {
 		err = json.NewDecoder(rr.Body).Decode(&userResponse)
 		require.NoError(t, err)
 		require.EqualValues(t, user, userResponse.Data)
+	})
+}
+
+func TestUpdateUser(t *testing.T) {
+	app := newTestApplication(t)
+	mux := app.mount()
+	user := store.User{ID: 1, Username: "Test", Email: "test@gmail.com"}
+	err := app.storage.Users.Create(context.Background(), nil, &user)
+	require.NoError(t, err)
+	t.Run("should not allow unauthenticated requests", func(t *testing.T) {
+		body := UpdateUserPayload{Username: "Updated", Email: "updated@gmail.com", Password: "Updated"}
+		jsonBody, err := json.Marshal(body)
+		require.NoError(t, err)
+		req, err := http.NewRequest(http.MethodPut, "/v1/users/1", bytes.NewBuffer(jsonBody))
+		require.NoError(t, err)
+		rr := executeRequest(req, mux)
+		require.Equal(t, http.StatusUnauthorized, rr.Code)
 	})
 }
