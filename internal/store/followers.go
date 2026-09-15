@@ -16,11 +16,11 @@ type FollowerStore struct {
 	db *sql.DB
 }
 type FollowerRepository interface {
-	Follow(context.Context, int64, int64) error
-	Unfollow(context.Context, int64, int64) error
+	Follow(ctx context.Context, userID, followerID int64) error
+	Unfollow(ctx context.Context, userID, followerID int64) error
 }
 
-func (s *FollowerStore) Follow(ctx context.Context, followerID, userID int64) error {
+func (s *FollowerStore) Follow(ctx context.Context, userID, followerID int64) error {
 	query := `INSERT INTO followers (user_id, follower_id) VALUES ($1, $2)`
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeout)
 	defer cancel()
