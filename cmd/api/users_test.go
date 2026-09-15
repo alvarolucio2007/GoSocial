@@ -193,3 +193,38 @@ func TestFollowUserHandler(t *testing.T) {
 		require.Equal(t, http.StatusConflict, rr.Code)
 	})
 }
+
+func TestUnfollowUserHandler(t *testing.T) {
+	app := newTestApplication(t)
+	mux := app.mount()
+	user1 := store.User{ID: 1, Username: "Test", Email: "test@gmail.com"}
+	err := app.storage.Users.Create(context.Background(), nil, &user1)
+	require.NoError(t, err)
+	user2 := store.User{ID: 2, Username: "Test2", Email: "test2@gmail.com"}
+	err = app.storage.Users.Create(context.Background(), nil, &user2)
+	require.NoError(t, err)
+	err = app.storage.Followers.Follow(context.Background(), 1, 2)
+	require.NoError(t, err)
+	t.Run("should not allow unauthenticated requests", func(t *testing.T) {
+		req, err := http.NewRequest(http.MethodPut, "/v1/users/2/follow", nil)
+		require.NoError(t, err)
+		rr := executeRequest(req, mux)
+		require.Equal(t, http.StatusUnauthorized, rr.Code)
+	})
+	t.Run("should allow unfollowing of other users", func(t *testing.T) {
+		req, err := http.NewRequest(http.MethodPut, "/v1/users/2/unfollow", nil)
+		require.NoError(t, err)
+
+		claimsToken, err := auth.NewClaims("test@gmail.com", 10*time.Second, 1)
+		require.NoError(t, err)
+		testToken, err := app.authenticator.CreateToken(*claimsToken)
+		require.NoError(t, err)
+		req.Header.Set("Authorization", "Bearer "+testToken)
+
+		rr := executeRequest(req, mux)
+		require.Equal(t, http.StatusNoContent, rr.Code)
+
+		err = app.storage.Followers.Unfollow(context.Background(), 1, 2)
+		require.ErrorIs(t, err, store.ErrNotFollowing)
+	})
+}
