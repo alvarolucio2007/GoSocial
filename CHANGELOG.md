@@ -1,5 +1,40 @@
 # Changelog
 
+## [2.0.0](https://github.com/alvarolucio2007/GoSocial/compare/v1.1.0...v2.0.0) (2026-09-15)
+
+
+### ⚠ BREAKING CHANGES
+
+* changing variable names (unfollowed->followed), and making return not found if doesn't exist.
+* changing error handling in Unfollow function, will return new ErrNotFollowing function
+* Unfollow returns ErrNotFound now
+* changing unfollow function parameters
+* Changing FollowerRepository method parameters.
+
+### Features
+
+* Finishing the unfollow implementation for mockFollowerRepository ([e85f904](https://github.com/alvarolucio2007/GoSocial/commit/e85f904d7ad4a3e90d0582421d6703ec0ab28019))
+* Implementing mock followers (prototype) ([1787998](https://github.com/alvarolucio2007/GoSocial/commit/1787998f613a4b2b7a1fcfb9fe64ad51b0c2ea11))
+* Implemting TestDeleteUser and TestFollowerUserHandler prototype. ([043d0df](https://github.com/alvarolucio2007/GoSocial/commit/043d0dfb44fd109d9ab7e6e34d6219c003d2b1b1))
+
+
+### Bug Fixes
+
+* Changing FollowerRepository method parameters. ([8edefe8](https://github.com/alvarolucio2007/GoSocial/commit/8edefe847b22dbb598c4648f38c2d332ae066772))
+* Changing mapFollowers to map[FollowKey]struct{} ([b97d4a2](https://github.com/alvarolucio2007/GoSocial/commit/b97d4a2d40ec07d75b250005d12686b215372ad6))
+* Fixing tests, specifically in TestUnfollowUserHandler ([28e9886](https://github.com/alvarolucio2007/GoSocial/commit/28e98868271773e99991b1472fa7781426a2db70))
+* Making Unfollow return ErrNotFollowing ([a7fd73b](https://github.com/alvarolucio2007/GoSocial/commit/a7fd73bcaa6ad021a97dafc8604a6f24237a17d3))
+* Switching followedID and followerUser.ID in followUserHandler Follow function. ([c8de544](https://github.com/alvarolucio2007/GoSocial/commit/c8de5448104a97f2401e785d5a515196c090d4b4))
+* transforming mapFollowers from map[int]*store.Follower to map[store.FollowKey]struct{} ([3ea38fe](https://github.com/alvarolucio2007/GoSocial/commit/3ea38fe8bf58101630d12c59055f89f7e2eb0d5e))
+* Unfollow returns ErrNotFound now ([a2cbafa](https://github.com/alvarolucio2007/GoSocial/commit/a2cbafa401f7b0df1abe38987c2bd10b667b28b1))
+
+
+### Code Refactoring
+
+* changing error handling in Unfollow function, will return new ErrNotFollowing function ([59369c8](https://github.com/alvarolucio2007/GoSocial/commit/59369c898a540fc3d59acee781a87871a0221ab6))
+* changing unfollow function parameters ([950d992](https://github.com/alvarolucio2007/GoSocial/commit/950d9923dd278287bb275f70ec62dcd5c0d67cbb))
+* changing variable names (unfollowed-&gt;followed), and making return not found if doesn't exist. ([c35cd08](https://github.com/alvarolucio2007/GoSocial/commit/c35cd0815904a5adc44140673ef14c2fc0c033bc))
+
 ## [1.1.0](https://github.com/alvarolucio2007/GoSocial/compare/v1.0.0...v1.1.0) (2026-09-15)
 
 
