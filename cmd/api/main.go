@@ -38,9 +38,9 @@ const version = "1.1.0"
 // @name						Authorization
 // @description
 func main() {
-	cfg_zap := zap.NewProductionConfig()
+	cfgZap := zap.NewProductionConfig()
 
-	logger := zap.Must(cfg_zap.Build(
+	logger := zap.Must(cfgZap.Build(
 		zap.AddStacktrace(zapcore.FatalLevel),
 	)).Sugar()
 	defer func() {
