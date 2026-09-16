@@ -73,3 +73,35 @@ func TestCreatePostHandler(t *testing.T) {
 		require.Equal(t, http.StatusBadRequest, rr.Code)
 	})
 }
+
+func TestReadPostHandler(t *testing.T) {
+	app := newTestApplication(t)
+	mux := app.mount()
+	user := store.User{ID: 1, Username: "test", Email: "test@gmail.com"}
+	err := app.storage.Users.Create(context.Background(), nil, &user)
+	require.NoError(t, err)
+	post := store.Post{ID: 1, Content: "test", Title: "Test", UserID: 1, Tags: []string{}, User: user}
+	err = app.storage.Posts.Create(context.Background(), &post)
+	require.NoError(t, err)
+	t.Run("should allow authenticated requests and read posts correctly", func(t *testing.T) {
+		req, err := http.NewRequest(http.MethodGet, "/v1/posts/1", nil)
+		require.NoError(t, err)
+
+		claimsToken, err := auth.NewClaims("test@gmail.com", 10*time.Second, 1)
+		require.NoError(t, err)
+		testToken, err := app.authenticator.CreateToken(*claimsToken)
+		require.NoError(t, err)
+		req.Header.Set("Authorization", "Bearer "+testToken)
+
+		rr := executeRequest(req, mux)
+		require.Equal(t, http.StatusOK, rr.Code)
+
+		var postResponse struct {
+			Data store.Post `json:"data"`
+		}
+		err = json.NewDecoder(rr.Body).Decode(&postResponse)
+		require.NoError(t, err)
+
+		require.EqualValues(t, post, postResponse.Data)
+	})
+}
