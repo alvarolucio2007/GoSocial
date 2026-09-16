@@ -233,7 +233,7 @@ O projeto utiliza mocks para testar handlers e serviços sem dependência de ban
 
 ## Benchmark
 
-Teste de carga realizado com `wrk` (1000 conexões, 20 segundos):
+Teste de carga realizado com `autocannon` (1000 conexões, 20 segundos):
 
 | Métrica | Com Redis | Sem Redis |
 |---------|-----------|-----------|
@@ -250,14 +250,12 @@ O cache Redis proporciona ganho de aproximadamente 70% em throughput e 42% de re
 
 | Comando | Descrição |
 |---------|-----------|
-| `make run` | Inicia a API |
-| `make build` | Compila o binário |
+| `make migrate (nome-migration) ` | Gera um novo arquivo de migração
 | `make test` | Executa os testes |
-| `make test-coverage` | Executa com cobertura |
 | `make migrateup` | Aplica migrações |
 | `make migratedown` | Reverte migrações |
 | `make seed` | Popula o banco com dados de teste |
-| `make docker` | Sobe o stack com Docker Compose |
+| `make gen-docs` | Gera a documentação Swagger |
 
 ---
 
