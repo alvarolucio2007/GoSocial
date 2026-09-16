@@ -114,7 +114,7 @@ func (app *application) readPostHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	post.Comments = comments
-	if err := app.jsonResponse(w, http.StatusCreated, &post); err != nil {
+	if err := app.jsonResponse(w, http.StatusOK, &post); err != nil {
 		app.internalServerError(w, r, err)
 		return
 	}
