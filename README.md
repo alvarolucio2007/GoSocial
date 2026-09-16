@@ -1,6 +1,6 @@
 # GoSocial
 
-API REST para rede social desenvolvida em Go, com arquitetura hexagonal, autenticação via PASETO, cache Redis e deploy containerizado.
+API REST para fórum desenvolvida em Go, com arquitetura baseada em hexagonal, autenticação via PASETO, cache Redis e containerizado com Docker.
 
 ---
 
