@@ -108,10 +108,10 @@ A API estará disponível em `http://localhost:8080`.
 
 ### Localmente
 
-1. Suba o banco e o cache:
+1. Suba a aplicação:
 
 ```bash
-docker compose up -d db cache
+docker compose up -d 
 ```
 
 2. Configure as variáveis de ambiente:
