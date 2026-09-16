@@ -13,7 +13,7 @@ import (
 	"github.com/go-openapi/testify/require"
 )
 
-func TestCreatePost(t *testing.T) {
+func TestCreatePostHandler(t *testing.T) {
 	app := newTestApplication(t)
 	mux := app.mount()
 	user := store.User{ID: 1, Username: "test", Email: "test@gmail.com"}
