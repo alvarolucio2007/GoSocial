@@ -13,7 +13,7 @@ import (
 	"github.com/go-openapi/testify/require"
 )
 
-func TestGetUser(t *testing.T) {
+func TestGetUserHandler(t *testing.T) {
 	app := newTestApplication(t)
 	mux := app.mount()
 	user := store.User{ID: 1, Username: "Test", Email: "test@gmail.com"}
@@ -45,7 +45,7 @@ func TestGetUser(t *testing.T) {
 	})
 }
 
-func TestUpdateUser(t *testing.T) {
+func TestUpdateUserHandler(t *testing.T) {
 	app := newTestApplication(t)
 	mux := app.mount()
 	user := store.User{ID: 1, Username: "Test", Email: "test@gmail.com"}
@@ -71,8 +71,8 @@ func TestUpdateUser(t *testing.T) {
 		require.NoError(t, err)
 		testToken, err := app.authenticator.CreateToken(*claimsToken)
 		require.NoError(t, err)
-
 		req.Header.Set("Authorization", "Bearer "+testToken)
+
 		rr := executeRequest(req, mux)
 		require.Equal(t, http.StatusOK, rr.Code)
 		var userResponse struct {
@@ -118,7 +118,7 @@ func TestUpdateUser(t *testing.T) {
 	})
 }
 
-func TestDeleteUser(t *testing.T) {
+func TestDeleteUserHandler(t *testing.T) {
 	app := newTestApplication(t)
 	mux := app.mount()
 	user := store.User{ID: 1, Username: "Test", Email: "test@gmail.com"}
