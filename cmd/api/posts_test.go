@@ -56,4 +56,20 @@ func TestCreatePost(t *testing.T) {
 
 		require.EqualValues(t, *fetchedPost, postResponse.Data)
 	})
+	t.Run("should not allow invalid payload", func(t *testing.T) {
+		body := CreatePostPayload{Title: "title", Content: "", Tags: []string{}}
+		jsonBody, err := json.Marshal(body)
+		require.NoError(t, err)
+		req, err := http.NewRequest(http.MethodPost, "/v1/posts", bytes.NewBuffer(jsonBody))
+		require.NoError(t, err)
+
+		claimsToken, err := auth.NewClaims("test@gmail.com", 10*time.Second, 1)
+		require.NoError(t, err)
+		testToken, err := app.authenticator.CreateToken(*claimsToken)
+		require.NoError(t, err)
+		req.Header.Set("Authorization", "Bearer "+testToken)
+
+		rr := executeRequest(req, mux)
+		require.Equal(t, http.StatusBadRequest, rr.Code)
+	})
 }
