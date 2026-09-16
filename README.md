@@ -179,6 +179,7 @@ Cole o resultado em `AUTH_TOKEN_SECRET`.
 | Método | Rota | Descrição |
 |--------|------|-----------|
 | GET | `/v1/health` | Verifica saúde da API (Basic Auth) |
+| GET | `/v1/metrics` | Verifica as métricas do backend |
 
 ### Autenticação
 
