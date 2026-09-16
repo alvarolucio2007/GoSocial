@@ -277,7 +277,7 @@ O projeto utiliza GitHub Actions para:
 
 PASETO elimina as brechas de configuração do JWT (como `alg: none` e confusão de algoritmos). A segurança é garantida por padrão, sem necessidade de flags adicionais.
 
-### Por que Argon2id em vez de bcrypt
+### Por que Argon2id em vez de bcrypt ou scrypt
 
 Argon2id é o vencedor do Password Hashing Competition (2015), com resistência superior a ataques de GPU e ASIC devido ao uso intensivo de memória.
 
