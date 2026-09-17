@@ -22,7 +22,7 @@ func (m *MockPostRepository) Read(ctx context.Context, id int) (*Post, error) {
 func (m *MockPostRepository) Update(ctx context.Context, post *Post) error {
 	oldPost, err := m.Read(ctx, int(post.ID))
 	if err != nil {
-		return ErrPostNotFound // literally the only error that can be thrown by m.Read
+		return ErrPostNotFound
 	}
 	p := *oldPost
 	if post.Content != "" {
