@@ -14,16 +14,11 @@ func (m *MockCommentRepository) GetByPostID(ctx context.Context, postID int64) (
 	if !exists {
 		return nil, ErrNotFound
 	}
-	result := make([]Comment, len(post.Comments))
-	for c := range post.Comments {
-		result = append(result, *m.comments[int64(c)])
-	}
-	return result, nil
+	return post.Comments, nil
 }
 
 func (m *MockCommentRepository) Create(ctx context.Context, comment *Comment) error {
-	_, exists := m.comments[comment.ID]
-	if !exists {
+	if _, exists := m.comments[comment.ID]; exists {
 		return ErrConflict
 	}
 	m.comments[comment.ID] = comment
