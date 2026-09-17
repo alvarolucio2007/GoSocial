@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.0.1](https://github.com/alvarolucio2007/GoSocial/compare/v3.0.0...v3.0.1) (2026-09-17)
+
+
+### Bug Fixes
+
+* Fixing healthcheck for postgres. ([bd9cd0f](https://github.com/alvarolucio2007/GoSocial/commit/bd9cd0faaa73fe83c5e665dbdf36c7c5b0027b66))
+* Fixing NewMockStorage returns (adding required fields to posts and comments) ([7e11703](https://github.com/alvarolucio2007/GoSocial/commit/7e11703344dbf3f0c0405dfeb0ad5aeab8212406))
+
 ## [3.0.0](https://github.com/alvarolucio2007/GoSocial/compare/v2.0.0...v3.0.0) (2026-09-17)
 
 
