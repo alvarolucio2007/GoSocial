@@ -3,7 +3,7 @@ package store
 import "context"
 
 type MockCommentRepository struct {
-	comments map[int]*Comment
+	comments map[int64]*Comment
 }
 
 func (m *MockCommentRepository) GetByPostID(ctx context.Context, postID int64) ([]Comment, error) {

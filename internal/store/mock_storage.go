@@ -1,6 +1,6 @@
 package store
 
-func NewMockStorage(mapPost map[int]*Post, mapUser map[int]*User, mapComments map[int]*Comment, mapFollowers map[FollowKey]struct{}, mapRoles map[int]*Role) Storage {
+func NewMockStorage(mapPost map[int64]*Post, mapUser map[int64]*User, mapComments map[int64]*Comment, mapFollowers map[FollowKey]struct{}, mapRoles map[int]*Role) Storage {
 	return Storage{
 		Posts:     &MockPostRepository{posts: mapPost},
 		Users:     &MockUserRepository{users: mapUser},

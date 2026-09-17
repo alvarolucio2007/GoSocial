@@ -98,7 +98,7 @@ func (app *application) checkRolePrecedecence(ctx context.Context, user *store.U
 	return user.Role.Level >= role.Level, nil
 }
 
-func (app *application) getUser(ctx context.Context, userID int) (*store.User, error) {
+func (app *application) getUser(ctx context.Context, userID int64) (*store.User, error) {
 	if !app.config.redisCfg.enabled {
 		return app.storage.Users.Read(ctx, userID)
 	}

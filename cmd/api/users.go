@@ -39,7 +39,7 @@ func (app *application) readUserHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	ctx := r.Context()
-	user, err := app.getUser(ctx, int(userID))
+	user, err := app.getUser(ctx, userID)
 	if err != nil {
 		switch err {
 		case store.ErrUserNotFound:

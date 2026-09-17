@@ -23,7 +23,7 @@ func (app *application) postContextMiddleware(next http.Handler) http.Handler {
 			return
 		}
 		ctx := r.Context()
-		post, err := app.storage.Posts.Read(ctx, int(id))
+		post, err := app.storage.Posts.Read(ctx, id)
 		if err != nil {
 			switch {
 			case errors.Is(err, store.ErrPostNotFound):
@@ -185,7 +185,7 @@ func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request
 func (app *application) deletePostHandler(w http.ResponseWriter, r *http.Request) {
 	post := getPostFromCtx(r)
 	ctx := r.Context()
-	if err := app.storage.Posts.Delete(ctx, int(post.ID)); err != nil {
+	if err := app.storage.Posts.Delete(ctx, post.ID); err != nil {
 		switch {
 		case errors.Is(err, store.ErrPostNotFound):
 			app.notFoundError(w, r, err)

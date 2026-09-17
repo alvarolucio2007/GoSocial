@@ -51,7 +51,7 @@ func TestCreatePostHandler(t *testing.T) {
 		err = json.NewDecoder(rr.Body).Decode(&postResponse)
 		require.NoError(t, err)
 
-		fetchedPost, err := app.storage.Posts.Read(context.Background(), int(postResponse.Data.ID))
+		fetchedPost, err := app.storage.Posts.Read(context.Background(), postResponse.Data.ID)
 		require.NoError(t, err)
 
 		require.EqualValues(t, *fetchedPost, postResponse.Data)
@@ -153,7 +153,7 @@ func TestUpdatePostHandler(t *testing.T) {
 		err = json.NewDecoder(rr.Body).Decode(&postResponse)
 		require.NoError(t, err)
 
-		fetchedPost, err := app.storage.Posts.Read(context.Background(), int(postResponse.Data.ID))
+		fetchedPost, err := app.storage.Posts.Read(context.Background(), postResponse.Data.ID)
 		require.NoError(t, err)
 
 		require.EqualValues(t, *fetchedPost, postResponse.Data)
@@ -180,7 +180,7 @@ func TestUpdatePostHandler(t *testing.T) {
 		err = json.NewDecoder(rr.Body).Decode(&postResponse)
 		require.NoError(t, err)
 
-		fetchedPost, err := app.storage.Posts.Read(context.Background(), int(postResponse.Data.ID))
+		fetchedPost, err := app.storage.Posts.Read(context.Background(), postResponse.Data.ID)
 		require.NoError(t, err)
 
 		require.EqualValues(t, *fetchedPost, postResponse.Data)

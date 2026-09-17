@@ -12,7 +12,7 @@ func NewMockCache(mockCache MockCacheStore) Storage {
 	return Storage{Users: mockCache}
 }
 
-func (m MockCacheStore) Get(ctx context.Context, id int) (*store.User, error) {
+func (m MockCacheStore) Get(ctx context.Context, id int64) (*store.User, error) {
 	return nil, nil
 }
 

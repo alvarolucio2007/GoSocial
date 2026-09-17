@@ -14,9 +14,9 @@ func newTestApplication(t *testing.T) *application {
 	t.Helper()
 	logger := zap.Must(zap.NewProduction()).Sugar()
 
-	mapPost := make(map[int]*store.Post)
-	mapUser := make(map[int]*store.User)
-	mapComments := make(map[int]*store.Comment)
+	mapPost := make(map[int64]*store.Post)
+	mapUser := make(map[int64]*store.User)
+	mapComments := make(map[int64]*store.Comment)
 	mapFollowers := make(map[store.FollowKey]struct{})
 	mapRoles := make(map[int]*store.Role)
 	mockStorage := store.NewMockStorage(mapPost, mapUser, mapComments, mapFollowers, mapRoles)
