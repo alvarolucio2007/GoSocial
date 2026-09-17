@@ -292,7 +292,7 @@ Com carga alta (1000 conexões simultâneas), o Redis reduz a carga no PostgreSQ
 
 - Finalização de testes das rotas em mock
 - Testes de integração com banco real (testcontainers)
-- Paginação em listagens
+- Criação de frontend em framework JS/TS
 
 ---
 
