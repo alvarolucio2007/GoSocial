@@ -28,7 +28,7 @@ type UserStore struct {
 }
 type UserRepository interface {
 	Create(ctx context.Context, tx *sql.Tx, user *User) error
-	Read(ctx context.Context, userID int) (*User, error)
+	Read(ctx context.Context, userID int64) (*User, error)
 	GetByEmail(ctx context.Context, email string) (*User, error)
 	Update(ctx context.Context, user *User) error
 	Delete(ctx context.Context, userID int64) error
@@ -95,7 +95,7 @@ func (s *UserStore) Create(ctx context.Context, tx *sql.Tx, user *User) error {
 
 var ErrUserNotFound = errors.New("user not found")
 
-func (s *UserStore) Read(ctx context.Context, idUser int) (*User, error) {
+func (s *UserStore) Read(ctx context.Context, idUser int64) (*User, error) {
 	query := `SELECT u.id,u.username,u.email,u.password,u.created_at,u.is_active,u.role_id,r.name,r.level,r.description FROM users u INNER JOIN roles r ON u.role_id=r.id WHERE u.id = $1 AND u.is_active = true`
 	var u User
 

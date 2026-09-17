@@ -3,15 +3,16 @@ package store
 import "context"
 
 type MockPostRepository struct {
-	posts map[int]*Post
+	posts map[int64]*Post
+	users map[int64]*User
 }
 
 func (m *MockPostRepository) Create(ctx context.Context, post *Post) error {
-	m.posts[int(post.ID)] = post
+	m.posts[post.ID] = post
 	return nil
 }
 
-func (m *MockPostRepository) Read(ctx context.Context, id int) (*Post, error) {
+func (m *MockPostRepository) Read(ctx context.Context, id int64) (*Post, error) {
 	p, ok := m.posts[id]
 	if !ok {
 		return nil, ErrPostNotFound
@@ -20,7 +21,7 @@ func (m *MockPostRepository) Read(ctx context.Context, id int) (*Post, error) {
 }
 
 func (m *MockPostRepository) Update(ctx context.Context, post *Post) error {
-	oldPost, err := m.Read(ctx, int(post.ID))
+	oldPost, err := m.Read(ctx, post.ID)
 	if err != nil {
 		return ErrPostNotFound
 	}
@@ -35,11 +36,11 @@ func (m *MockPostRepository) Update(ctx context.Context, post *Post) error {
 		p.Tags = post.Tags
 	}
 
-	m.posts[int(post.ID)] = &p
+	m.posts[post.ID] = &p
 	return nil
 }
 
-func (m *MockPostRepository) Delete(ctx context.Context, idPost int) error {
+func (m *MockPostRepository) Delete(ctx context.Context, idPost int64) error {
 	_, err := m.Read(ctx, idPost)
 	if err != nil {
 		return ErrPostNotFound
@@ -49,5 +50,9 @@ func (m *MockPostRepository) Delete(ctx context.Context, idPost int) error {
 }
 
 func (m *MockPostRepository) GetUserFeed(ctx context.Context, idUser int64, fn PaginatedFeedQuery) ([]PostWithMetadata, error) {
+	if _, exist := m.users[idUser]; !exist {
+		return nil, ErrUserNotFound
+	}
+	// TODO: Implement this somehow. I have no idea on how...
 	return nil, nil
 }

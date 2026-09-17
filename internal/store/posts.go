@@ -33,9 +33,9 @@ type PostStore struct {
 }
 type PostRepository interface {
 	Create(context.Context, *Post) error
-	Read(context.Context, int) (*Post, error)
+	Read(context.Context, int64) (*Post, error)
 	Update(context.Context, *Post) error
-	Delete(context.Context, int) error
+	Delete(context.Context, int64) error
 	GetUserFeed(context.Context, int64, PaginatedFeedQuery) ([]PostWithMetadata, error)
 }
 
@@ -57,7 +57,7 @@ func (s *PostStore) Create(ctx context.Context, post *Post) error {
 
 var ErrPostNotFound = errors.New("post not found")
 
-func (s *PostStore) Read(ctx context.Context, idPost int) (*Post, error) {
+func (s *PostStore) Read(ctx context.Context, idPost int64) (*Post, error) {
 	query := `SELECT id,content,title,user_id,tags,created_at,updated_at ,version FROM posts WHERE id = $1`
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeout)
 	defer cancel()
@@ -99,7 +99,7 @@ func (s *PostStore) Update(ctx context.Context, post *Post) error {
 	return nil
 }
 
-func (s *PostStore) Delete(ctx context.Context, idPost int) error {
+func (s *PostStore) Delete(ctx context.Context, idPost int64) error {
 	query := `DELETE FROM posts WHERE id=$1`
 	// TODO: Add proper role-based deletion.
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeout)
