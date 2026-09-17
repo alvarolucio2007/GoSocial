@@ -1,5 +1,29 @@
 # Changelog
 
+## [3.0.0](https://github.com/alvarolucio2007/GoSocial/compare/v2.0.0...v3.0.0) (2026-09-17)
+
+
+### ⚠ BREAKING CHANGES
+
+* changing http statusCreated to StatusOK in readPostHandler happy path
+
+### Features
+
+* Adding test case should not allow invalid payload for TestCreatePost ([6696436](https://github.com/alvarolucio2007/GoSocial/commit/6696436a39a459bc4f7deaa8ab86d6afaa0c9d5c))
+* Implementing tests for creating posts. ([0f2a47c](https://github.com/alvarolucio2007/GoSocial/commit/0f2a47cfa2c90b4b18ad2de11751999188aeed6f))
+* Implementing tests for creating posts. ([004546f](https://github.com/alvarolucio2007/GoSocial/commit/004546fccd5de7038a850fbd245a91745d949948))
+
+
+### Bug Fixes
+
+* Changing golang:1.27 to golang:1.27-alpine for lower data usage ([85e2197](https://github.com/alvarolucio2007/GoSocial/commit/85e2197e83ad86e7e53ee6a05cc29c040cd8a093))
+* Changing golang:1.27 to golang:1.27-alpine for lower data usage ([0152b0f](https://github.com/alvarolucio2007/GoSocial/commit/0152b0f009e3db310379865b1d3b04e5e3816fec))
+
+
+### Code Refactoring
+
+* changing http statusCreated to StatusOK in readPostHandler happy path ([5fa6e4f](https://github.com/alvarolucio2007/GoSocial/commit/5fa6e4f619449f1fd48a8f6285c2c446e1185423))
+
 ## [2.0.0](https://github.com/alvarolucio2007/GoSocial/compare/v1.1.0...v2.0.0) (2026-09-15)
 
 
