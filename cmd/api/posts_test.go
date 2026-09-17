@@ -186,3 +186,54 @@ func TestUpdatePostHandler(t *testing.T) {
 		require.EqualValues(t, *fetchedPost, postResponse.Data)
 	})
 }
+
+func TestDeletePostHandler(t *testing.T) {
+	app := newTestApplication(t)
+	mux := app.mount()
+	user := store.User{ID: 1, Username: "test", Email: "test@gmail.com"}
+	err := app.storage.Users.Create(context.Background(), nil, &user)
+	require.NoError(t, err)
+	post := store.Post{ID: 1, Content: "test", Title: "Test", UserID: 1, Tags: []string{}, User: user}
+	err = app.storage.Posts.Create(context.Background(), &post)
+	require.NoError(t, err)
+	t.Run("should not allow unauthenticated access", func(t *testing.T) {
+		req, err := http.NewRequest(http.MethodDelete, "/v1/posts/1", nil)
+		require.NoError(t, err)
+		rr := executeRequest(req, mux)
+		require.Equal(t, http.StatusUnauthorized, rr.Code)
+	})
+	t.Run("should delete post with authenticated request", func(t *testing.T) {
+		claimsToken, err := auth.NewClaims("test@gmail.com", 10*time.Second, 1)
+		require.NoError(t, err)
+		testToken, err := app.authenticator.CreateToken(*claimsToken)
+		require.NoError(t, err)
+
+		req, err := http.NewRequest(http.MethodDelete, "/v1/posts/1", nil)
+		require.NoError(t, err)
+		req.Header.Set("Authorization", "Bearer "+testToken)
+		require.NoError(t, err)
+
+		rr := executeRequest(req, mux)
+		require.Equal(t, http.StatusNoContent, rr.Code)
+	})
+	t.Run("should not be able to delete posts that don't exist", func(t *testing.T) {
+		post := store.Post{ID: 1, Content: "test", Title: "Test", UserID: 1, Tags: []string{}, User: user}
+		err = app.storage.Posts.Create(context.Background(), &post)
+		require.NoError(t, err)
+
+		claimsToken, err := auth.NewClaims("test@gmail.com", 10*time.Second, 1)
+		require.NoError(t, err)
+		testToken, err := app.authenticator.CreateToken(*claimsToken)
+		require.NoError(t, err)
+
+		req, err := http.NewRequest(http.MethodDelete, "/v1/posts/1", nil)
+		require.NoError(t, err)
+		req.Header.Set("Authorization", "Bearer "+testToken)
+		require.NoError(t, err)
+
+		rr := executeRequest(req, mux)
+		require.Equal(t, http.StatusNoContent, rr.Code)
+		_, err = app.storage.Posts.Read(context.Background(), 1)
+		require.ErrorIs(t, err, store.ErrPostNotFound)
+	})
+}
