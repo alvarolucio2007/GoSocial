@@ -7,5 +7,10 @@ type MockRoleRepository struct {
 }
 
 func (m *MockRoleRepository) GetByName(ctx context.Context, name string) (*Role, error) {
-	return nil, nil
+	for _, role := range m.roles {
+		if role.Name == name {
+			return role, nil
+		}
+	}
+	return nil, ErrNotFound
 }
