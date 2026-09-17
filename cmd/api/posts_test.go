@@ -80,7 +80,7 @@ func TestReadPostHandler(t *testing.T) {
 	user := store.User{ID: 1, Username: "test", Email: "test@gmail.com"}
 	err := app.storage.Users.Create(context.Background(), nil, &user)
 	require.NoError(t, err)
-	post := store.Post{ID: 1, Content: "test", Title: "Test", UserID: 1, Tags: []string{}, User: user}
+	post := store.Post{ID: 1, Content: "test", Title: "Test", UserID: 1, Tags: []string{}, User: user, Comments: []store.Comment{{ID: 1, PostID: 1, UserID: 1, Content: "Test"}, {ID: 2, PostID: 2, Content: "Test2", UserID: 1}}}
 	err = app.storage.Posts.Create(context.Background(), &post)
 	require.NoError(t, err)
 	t.Run("should not allow unauthenticated access", func(t *testing.T) {
