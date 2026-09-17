@@ -53,5 +53,6 @@ func (m *MockPostRepository) GetUserFeed(ctx context.Context, idUser int64, fn P
 	if _, exist := m.users[idUser]; !exist {
 		return nil, ErrUserNotFound
 	}
-	// TODO: Implement this somehow.
+	// TODO: Implement this somehow. I have no idea on how...
+	return nil, nil
 }
