@@ -101,6 +101,7 @@ func (s *PostStore) Update(ctx context.Context, post *Post) error {
 
 func (s *PostStore) Delete(ctx context.Context, idPost int) error {
 	query := `DELETE FROM posts WHERE id=$1`
+	// TODO: Add proper role-based deletion.
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeout)
 	defer cancel()
 	res, err := s.db.ExecContext(ctx, query, idPost)
@@ -138,7 +139,6 @@ func (s *PostStore) GetUserFeed(ctx context.Context, idUser int64, fq PaginatedF
     WHERE (f.user_id = $1 OR p.user_id = $1)
         AND (p.title ILIKE '%' || $4 || '%' OR p.content ILIKE '%' || $4 || '%')
         AND (p.tags @> $5 OR $5 = '{}')
-        -- Datas tratadas corretamente contra NULL e usando AND:
         AND ($6::timestamptz IS NULL OR p.created_at >= $6)
         AND ($7::timestamptz IS NULL OR p.created_at <= $7)
     GROUP BY p.id, u.username
@@ -159,6 +159,9 @@ func (s *PostStore) GetUserFeed(ctx context.Context, idUser int64, fq PaginatedF
 	}()
 	feed := make([]PostWithMetadata, 0)
 	for rows.Next() {
+		if err := rows.Err(); err != nil {
+			return nil, err
+		}
 		var p PostWithMetadata
 		var tagsBytes []byte
 		err := rows.Scan(
