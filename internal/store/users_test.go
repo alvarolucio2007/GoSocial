@@ -64,7 +64,7 @@ func TestDelete(t *testing.T) {
 	require.NoError(t, err)
 	err = tx.Commit()
 	require.NoError(t, err)
-	_, err = testDB.Exec("UPDATE users SET is_active = true WHERE username='testUpdate'")
+	_, err = testDB.Exec("UPDATE users SET is_active = true WHERE username='testDelete'")
 	require.NoError(t, err)
 	var userID int64
 	err = testDB.QueryRow("SELECT id FROM users WHERE email='testDelete@gmail.com'").Scan(&userID)
