@@ -75,4 +75,12 @@ func TestUpdatePost(t *testing.T) {
 		require.Equal(t, postUpdated.Title, postRead.Title)
 		require.Equal(t, postUpdated.Tags, postRead.Tags)
 	})
+	t.Run("edit a post which doesn't exist", func(t *testing.T) {
+		postUpdated := &Post{ID: postID + 1, Content: "updatedContent", Title: "updatedTitle", Tags: []string{"Test1", "Test2"}}
+		err := testStore.Posts.Update(t.Context(), postUpdated)
+		require.Error(t, err)
+	})
+}
+
+func TestDeletePost(t *testing.T) {
 }
