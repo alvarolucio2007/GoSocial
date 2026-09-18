@@ -83,4 +83,32 @@ func TestUpdatePost(t *testing.T) {
 }
 
 func TestDeletePost(t *testing.T) {
+	user := &User{Username: "testDeletePost", Email: "testDeletePost@gmail.com"}
+	tx, err := testDB.Begin()
+	require.NoError(t, err)
+	err = testStore.Users.Create(context.Background(), tx, user)
+	require.NoError(t, err)
+	err = tx.Commit()
+	require.NoError(t, err)
+	_, err = testDB.Exec("UPDATE users SET is_active = true WHERE username='testDeletePost'")
+	require.NoError(t, err)
+
+	post := &Post{Content: "testContent", Title: "testTitle", UserID: user.ID, Tags: nil}
+	err = testStore.Posts.Create(t.Context(), post)
+	require.NoError(t, err)
+
+	var postID int64
+	err = testDB.QueryRow("SELECT id FROM posts WHERE content='testContent'").Scan(&postID)
+	require.NoError(t, err)
+	t.Run("deletion of a valid post", func(t *testing.T) {
+		err := testStore.Posts.Delete(t.Context(), postID)
+		require.NoError(t, err)
+		post, err := testStore.Posts.Read(t.Context(), postID)
+		require.ErrorIs(t, err, ErrPostNotFound)
+		require.Nil(t, post)
+	})
+	t.Run("deletion of an invalid post", func(t *testing.T) {
+		err := testStore.Posts.Delete(t.Context(), postID)
+		require.ErrorIs(t, err, ErrPostNotFound)
+	})
 }
