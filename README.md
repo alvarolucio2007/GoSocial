@@ -290,8 +290,8 @@ Com carga alta (1000 conexões simultâneas), o Redis reduz a carga no PostgreSQ
 
 ## Próximos Passos
 
-- Finalização de testes das rotas em mock
 - Testes de integração com banco real (testcontainers)
+- Refatoração geral do sistema
 - Implementação de Autenticação oauth2
 - Criação de frontend em framework JS/TS
 
