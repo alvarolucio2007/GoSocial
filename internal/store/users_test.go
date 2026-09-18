@@ -1,18 +1,17 @@
 package store
 
 import (
-	"context"
 	"testing"
 
 	"github.com/go-openapi/testify/require"
 )
 
-func TestCreate(t *testing.T) {
+func TestCreateUser(t *testing.T) {
 	user := &User{Username: "testCreate", Email: "test@gmail.com"}
 	t.Run("user creation", func(t *testing.T) {
 		tx, err := testDB.Begin()
 		require.NoError(t, err)
-		err = testStore.Users.Create(context.Background(), tx, user)
+		err = testStore.Users.Create(t.Context(), tx, user)
 		require.NoError(t, err)
 		err = tx.Commit()
 		require.NoError(t, err)
@@ -21,7 +20,7 @@ func TestCreate(t *testing.T) {
 		_, err := testDB.Exec("UPDATE users SET is_active = true WHERE username='testCreate'")
 		require.NoError(t, err)
 
-		userReceived, err := testStore.Users.GetByEmail(context.Background(), user.Email)
+		userReceived, err := testStore.Users.GetByEmail(t.Context(), user.Email)
 		require.NoError(t, err)
 		require.Equal(t, user.Username, userReceived.Username)
 		require.Equal(t, user.Email, userReceived.Email)
@@ -32,20 +31,20 @@ func TestCreate(t *testing.T) {
 	})
 }
 
-func TestUpdate(t *testing.T) {
+func TestUpdateUser(t *testing.T) {
 	user := &User{Username: "testUpdate", Email: "testUpdate@gmail.com"}
 	tx, err := testDB.Begin()
 	require.NoError(t, err)
-	err = testStore.Users.Create(context.Background(), tx, user)
+	err = testStore.Users.Create(t.Context(), tx, user)
 	require.NoError(t, err)
 	err = tx.Commit()
 	require.NoError(t, err)
 	_, err = testDB.Exec("UPDATE users SET is_active = true WHERE username='testUpdate'")
 	require.NoError(t, err)
 	t.Run("user update", func(t *testing.T) {
-		err = testStore.Users.Update(context.Background(), user)
+		err = testStore.Users.Update(t.Context(), user)
 		require.NoError(t, err)
-		userReceived, err := testStore.Users.GetByEmail(context.Background(), user.Email)
+		userReceived, err := testStore.Users.GetByEmail(t.Context(), user.Email)
 		require.NoError(t, err)
 		require.Equal(t, user.Username, userReceived.Username)
 		require.Equal(t, user.Email, userReceived.Email)
@@ -56,11 +55,11 @@ func TestUpdate(t *testing.T) {
 	})
 }
 
-func TestDelete(t *testing.T) {
+func TestDeleteUser(t *testing.T) {
 	user := &User{Username: "testDelete", Email: "testDelete@gmail.com"}
 	tx, err := testDB.Begin()
 	require.NoError(t, err)
-	err = testStore.Users.Create(context.Background(), tx, user)
+	err = testStore.Users.Create(t.Context(), tx, user)
 	require.NoError(t, err)
 	err = tx.Commit()
 	require.NoError(t, err)
@@ -70,11 +69,11 @@ func TestDelete(t *testing.T) {
 	err = testDB.QueryRow("SELECT id FROM users WHERE email='testDelete@gmail.com'").Scan(&userID)
 	require.NoError(t, err)
 	t.Run("testing user deletion", func(t *testing.T) {
-		err = testStore.Users.Delete(context.Background(), userID)
+		err = testStore.Users.Delete(t.Context(), userID)
 		require.NoError(t, err)
 	})
 	t.Run("checking the deleted user by reading it", func(t *testing.T) {
-		user, err := testStore.Users.Read(context.Background(), userID)
+		user, err := testStore.Users.Read(t.Context(), userID)
 		require.ErrorIs(t, err, ErrUserNotFound)
 		require.Nil(t, user)
 	})
