@@ -71,8 +71,6 @@ func TestDeleteUser(t *testing.T) {
 	t.Run("testing user deletion", func(t *testing.T) {
 		err = testStore.Users.Delete(t.Context(), userID)
 		require.NoError(t, err)
-	})
-	t.Run("checking the deleted user by reading it", func(t *testing.T) {
 		user, err := testStore.Users.Read(t.Context(), userID)
 		require.ErrorIs(t, err, ErrUserNotFound)
 		require.Nil(t, user)
