@@ -1,5 +1,6 @@
 # GoSocial
 [![Tests Passing and Building Docker Image](https://github.com/alvarolucio2007/GoSocial/actions/workflows/build.yml/badge.svg)](https://github.com/alvarolucio2007/GoSocial/actions/workflows/build.yml)
+
 API REST para fórum desenvolvida em Go, com arquitetura baseada em hexagonal, autenticação via PASETO, cache Redis e containerizado com Docker.
 
 ---
