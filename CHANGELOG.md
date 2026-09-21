@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.0.2](https://github.com/alvarolucio2007/GoSocial/compare/v3.0.1...v3.0.2) (2026-09-21)
+
+
+### Bug Fixes
+
+* Adding validation userID==followerID in Follow and Unfollow ([f6bb2b1](https://github.com/alvarolucio2007/GoSocial/commit/f6bb2b13608c3c156e3f4c2136a5a2aca5024db9))
+
 ## [3.0.1](https://github.com/alvarolucio2007/GoSocial/compare/v3.0.0...v3.0.1) (2026-09-17)
 
 
