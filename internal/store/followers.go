@@ -17,20 +17,20 @@ type FollowerStore struct {
 	db *sql.DB
 }
 type FollowerRepository interface {
-	Follow(ctx context.Context, userID, followerID int64) error
-	Unfollow(ctx context.Context, userID, followerID int64) error
+	Follow(ctx context.Context, followedID, followerID int64) error
+	Unfollow(ctx context.Context, followedID, followerID int64) error
 }
 
 var ErrSameFollowingID = errors.New("the ID is the same for followerID and userID")
 
-func (s *FollowerStore) Follow(ctx context.Context, userID, followerID int64) error {
+func (s *FollowerStore) Follow(ctx context.Context, followedID, followerID int64) error {
 	query := `INSERT INTO followers (user_id, follower_id) VALUES ($1, $2)`
-	if userID == followerID {
+	if followedID == followerID {
 		return ErrSameFollowingID
 	}
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeout)
 	defer cancel()
-	_, err := s.db.ExecContext(ctx, query, userID, followerID)
+	_, err := s.db.ExecContext(ctx, query, followedID, followerID)
 	if err != nil {
 		if pqErr, ok := err.(*pgconn.PgError); ok && pqErr.Code == "23505" {
 			return ErrConflict
@@ -42,14 +42,14 @@ func (s *FollowerStore) Follow(ctx context.Context, userID, followerID int64) er
 
 var ErrNotFollowing = errors.New("user is not following")
 
-func (s *FollowerStore) Unfollow(ctx context.Context, userID, followerID int64) error {
+func (s *FollowerStore) Unfollow(ctx context.Context, followedID, followerID int64) error {
 	query := `DELETE FROM followers WHERE user_id=$1 AND follower_id=$2`
-	if userID == followerID {
+	if followedID == followerID {
 		return ErrSameFollowingID
 	}
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeout)
 	defer cancel()
-	res, err := s.db.ExecContext(ctx, query, userID, followerID)
+	res, err := s.db.ExecContext(ctx, query, followedID, followerID)
 	if err != nil {
 		return err
 	}
