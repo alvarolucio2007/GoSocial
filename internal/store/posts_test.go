@@ -1,7 +1,6 @@
 package store
 
 import (
-	"context"
 	"testing"
 
 	"github.com/go-openapi/testify/require"
@@ -9,14 +8,7 @@ import (
 
 func TestCreatePost(t *testing.T) {
 	user := &User{Username: "testCreatePost", Email: "testCreatePost@gmail.com"}
-	tx, err := testDB.Begin()
-	require.NoError(t, err)
-	err = testStore.Users.Create(context.Background(), tx, user)
-	require.NoError(t, err)
-	err = tx.Commit()
-	require.NoError(t, err)
-	_, err = testDB.Exec("UPDATE users SET is_active = true WHERE username='testCreate'")
-	require.NoError(t, err)
+	createUserTest(t, user)
 	t.Run("create valid post with valid userID", func(t *testing.T) {
 		post := &Post{Content: "testContent", Title: "testTitle", UserID: user.ID, Tags: nil}
 		err := testStore.Posts.Create(t.Context(), post)
@@ -37,31 +29,19 @@ func TestCreatePost(t *testing.T) {
 		require.Error(t, err)
 	})
 	t.Cleanup(func() {
-		_, err = testDB.Exec("DELETE FROM posts WHERE id=1")
+		_, err := testDB.Exec("DELETE FROM posts WHERE id=1")
 		require.NoError(t, err)
-		_, err := testDB.Exec("DELETE FROM users WHERE email='testCreatePost@gmail.com'")
+		_, err = testDB.Exec("DELETE FROM users WHERE email='testCreatePost@gmail.com'")
 		require.NoError(t, err)
 	})
 }
 
 func TestUpdatePost(t *testing.T) {
 	user := &User{Username: "testUpdatePost", Email: "testUpdatePost@gmail.com"}
-	tx, err := testDB.Begin()
-	require.NoError(t, err)
-	err = testStore.Users.Create(context.Background(), tx, user)
-	require.NoError(t, err)
-	err = tx.Commit()
-	require.NoError(t, err)
-	_, err = testDB.Exec("UPDATE users SET is_active = true WHERE username='testUpdatePost'")
-	require.NoError(t, err)
+	createUserTest(t, user)
 
 	post := &Post{Content: "testContent", Title: "testTitle", UserID: user.ID, Tags: nil}
-	err = testStore.Posts.Create(t.Context(), post)
-	require.NoError(t, err)
-
-	var postID int64
-	err = testDB.QueryRow("SELECT id FROM posts WHERE content='testContent'").Scan(&postID)
-	require.NoError(t, err)
+	postID := createPostTest(t, post)
 	t.Run("edit valid post", func(t *testing.T) {
 		postUpdated := &Post{ID: postID, Content: "updatedContent", Title: "updatedTitle", Tags: []string{"Test1", "Test2"}}
 		err := testStore.Posts.Update(t.Context(), postUpdated)
@@ -84,17 +64,10 @@ func TestUpdatePost(t *testing.T) {
 
 func TestDeletePost(t *testing.T) {
 	user := &User{Username: "testDeletePost", Email: "testDeletePost@gmail.com"}
-	tx, err := testDB.Begin()
-	require.NoError(t, err)
-	err = testStore.Users.Create(context.Background(), tx, user)
-	require.NoError(t, err)
-	err = tx.Commit()
-	require.NoError(t, err)
-	_, err = testDB.Exec("UPDATE users SET is_active = true WHERE username='testDeletePost'")
-	require.NoError(t, err)
+	createUserTest(t, user)
 
 	post := &Post{Content: "testContent", Title: "testTitle", UserID: user.ID, Tags: nil}
-	err = testStore.Posts.Create(t.Context(), post)
+	err := testStore.Posts.Create(t.Context(), post)
 	require.NoError(t, err)
 
 	var postID int64
