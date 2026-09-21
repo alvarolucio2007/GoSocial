@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-openapi/testify/require"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -90,4 +91,24 @@ func runMigrations(connStr string) error {
 		return err
 	}
 	return nil
+}
+
+func createUserTest(t *testing.T, user *User) {
+	tx, err := testDB.Begin()
+	require.NoError(t, err)
+	err = testStore.Users.Create(t.Context(), tx, user)
+	require.NoError(t, err)
+	_, err = tx.Exec("UPDATE users SET is_active = true WHERE username=$1", user.Username)
+	require.NoError(t, err)
+	err = tx.Commit()
+	require.NoError(t, err)
+	err = testDB.QueryRowContext(t.Context(), "SELECT id FROM users WHERE email=$1", user.Email).Scan(&user.ID)
+	require.NoError(t, err)
+}
+
+func createPostTest(t *testing.T, post *Post) {
+	err := testStore.Posts.Create(t.Context(), post)
+	require.NoError(t, err)
+	err = testDB.QueryRowContext(t.Context(), "SELECT id FROM posts WHERE title=$1", post.Title).Scan(&post.ID)
+	require.NoError(t, err)
 }
