@@ -111,5 +111,6 @@ func createPostTest(t *testing.T, post *Post) int64 {
 	err := testStore.Posts.Create(t.Context(), post)
 	require.NoError(t, err)
 	err = testDB.QueryRowContext(t.Context(), "SELECT id FROM posts WHERE title=$1", post.Title).Scan(&post.ID)
+	require.NoError(t, err)
 	return post.ID
 }
