@@ -93,7 +93,7 @@ func runMigrations(connStr string) error {
 	return nil
 }
 
-func createUserTest(t *testing.T, user *User) int64 {
+func createUserTest(t *testing.T, user *User) {
 	tx, err := testDB.Begin()
 	require.NoError(t, err)
 	err = testStore.Users.Create(t.Context(), tx, user)
@@ -104,13 +104,11 @@ func createUserTest(t *testing.T, user *User) int64 {
 	require.NoError(t, err)
 	err = testDB.QueryRowContext(t.Context(), "SELECT id FROM users WHERE email=$1", user.Email).Scan(&user.ID)
 	require.NoError(t, err)
-	return user.ID
 }
 
-func createPostTest(t *testing.T, post *Post) int64 {
+func createPostTest(t *testing.T, post *Post) {
 	err := testStore.Posts.Create(t.Context(), post)
 	require.NoError(t, err)
 	err = testDB.QueryRowContext(t.Context(), "SELECT id FROM posts WHERE title=$1", post.Title).Scan(&post.ID)
 	require.NoError(t, err)
-	return post.ID
 }
