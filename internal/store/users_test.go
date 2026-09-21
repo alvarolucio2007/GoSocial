@@ -42,11 +42,11 @@ func TestUpdateUser(t *testing.T) {
 
 func TestDeleteUser(t *testing.T) {
 	user := &User{Username: "testDelete", Email: "testDelete@gmail.com"}
-	userID := createUserTest(t, user)
+	createUserTest(t, user)
 	t.Run("testing user deletion", func(t *testing.T) {
-		err := testStore.Users.Delete(t.Context(), userID)
+		err := testStore.Users.Delete(t.Context(), user.ID)
 		require.NoError(t, err)
-		user, err := testStore.Users.Read(t.Context(), userID)
+		user, err := testStore.Users.Read(t.Context(), user.ID)
 		require.ErrorIs(t, err, ErrUserNotFound)
 		require.Nil(t, user)
 	})

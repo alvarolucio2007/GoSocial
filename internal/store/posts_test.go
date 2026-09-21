@@ -41,13 +41,13 @@ func TestUpdatePost(t *testing.T) {
 	createUserTest(t, user)
 
 	post := &Post{Content: "testContent", Title: "testTitle", UserID: user.ID, Tags: nil}
-	postID := createPostTest(t, post)
+	createPostTest(t, post)
 	t.Run("edit valid post", func(t *testing.T) {
-		postUpdated := &Post{ID: postID, Content: "updatedContent", Title: "updatedTitle", Tags: []string{"Test1", "Test2"}}
+		postUpdated := &Post{ID: post.ID, Content: "updatedContent", Title: "updatedTitle", Tags: []string{"Test1", "Test2"}}
 		err := testStore.Posts.Update(t.Context(), postUpdated)
 		require.NoError(t, err)
 
-		postRead, err := testStore.Posts.Read(t.Context(), postID)
+		postRead, err := testStore.Posts.Read(t.Context(), post.ID)
 		require.NoError(t, err)
 		require.NotNil(t, postRead)
 
@@ -56,7 +56,7 @@ func TestUpdatePost(t *testing.T) {
 		require.Equal(t, postUpdated.Tags, postRead.Tags)
 	})
 	t.Run("edit a post which doesn't exist", func(t *testing.T) {
-		postUpdated := &Post{ID: postID + 1, Content: "updatedContent", Title: "updatedTitle", Tags: []string{"Test1", "Test2"}}
+		postUpdated := &Post{ID: post.ID + 1, Content: "updatedContent", Title: "updatedTitle", Tags: []string{"Test1", "Test2"}}
 		err := testStore.Posts.Update(t.Context(), postUpdated)
 		require.Error(t, err)
 	})
@@ -67,21 +67,16 @@ func TestDeletePost(t *testing.T) {
 	createUserTest(t, user)
 
 	post := &Post{Content: "testContent", Title: "testTitle", UserID: user.ID, Tags: nil}
-	err := testStore.Posts.Create(t.Context(), post)
-	require.NoError(t, err)
-
-	var postID int64
-	err = testDB.QueryRow("SELECT id FROM posts WHERE content='testContent'").Scan(&postID)
-	require.NoError(t, err)
+	createPostTest(t, post)
 	t.Run("deletion of a valid post", func(t *testing.T) {
-		err := testStore.Posts.Delete(t.Context(), postID)
+		err := testStore.Posts.Delete(t.Context(), post.ID)
 		require.NoError(t, err)
-		post, err := testStore.Posts.Read(t.Context(), postID)
+		post, err := testStore.Posts.Read(t.Context(), post.ID)
 		require.ErrorIs(t, err, ErrPostNotFound)
 		require.Nil(t, post)
 	})
 	t.Run("deletion of an invalid post", func(t *testing.T) {
-		err := testStore.Posts.Delete(t.Context(), postID)
+		err := testStore.Posts.Delete(t.Context(), post.ID)
 		require.ErrorIs(t, err, ErrPostNotFound)
 	})
 }
