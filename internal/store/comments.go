@@ -55,10 +55,10 @@ func (s *CommentStore) Create(ctx context.Context, comment *Comment) error {
 }
 
 func (s *CommentStore) GetByPostID(ctx context.Context, postID int64) ([]Comment, error) {
-	query := `SELECT c.id,c.post_id,c.user_id,c.content,c.created_at,users.username,users.id FROM comments c
+	query := `SELECT c.id, c.post_id, c.user_id, c.content, c.created_at, users.username FROM comments c
 								JOIN users on users.id = c.user_id
 								WHERE c.post_id=$1
-								ORDER BY c.created_at DESC;
+								ORDER BY c.created_at DESC,c.id DESC;
 	`
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeout)
 	defer cancel()
@@ -68,21 +68,22 @@ func (s *CommentStore) GetByPostID(ctx context.Context, postID int64) ([]Comment
 	}
 	defer func() {
 		if err := rows.Close(); err != nil {
-			log.Printf("error in getByPostID function (comments) while closing conn:%v", err)
+			log.Printf("error in getByPostID function (comments) while closing rows:%v", err)
 		}
 	}()
 
 	comments := []Comment{}
 	for rows.Next() {
-		if rows.Err() != nil {
-			return nil, rows.Err()
-		}
 		var c Comment
-		c.User = User{}
-		err := rows.Scan(&c.ID, &c.PostID, &c.UserID, &c.Content, &c.CreatedAt, &c.User.Username, &c.User.ID)
-		if err != nil {
+		if err := rows.Scan(&c.ID, &c.PostID, &c.UserID, &c.Content, &c.CreatedAt, &c.User.Username); err != nil {
 			return nil, err
 		}
+		c.User.ID = c.UserID
+		comments = append(comments, c)
 	}
+	if rows.Err() != nil {
+		return nil, rows.Err()
+	}
+
 	return comments, nil
 }
