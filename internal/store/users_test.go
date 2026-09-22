@@ -18,7 +18,7 @@ func TestCreateUser(t *testing.T) {
 		require.Equal(t, user.Email, userReceived.Email)
 	})
 	t.Cleanup(func() {
-		_, err := testDB.Exec("DELETE FROM users WHERE email='test@gmail.com'")
+		_, err := testDB.Exec("DELETE FROM users WHERE id=$1", user.ID)
 		require.NoError(t, err)
 	})
 }
@@ -35,7 +35,7 @@ func TestUpdateUser(t *testing.T) {
 		require.Equal(t, user.Email, userReceived.Email)
 	})
 	t.Cleanup(func() {
-		_, err := testDB.Exec("DELETE FROM users WHERE email='testUpdate@gmail.com'")
+		_, err := testDB.Exec("DELETE FROM users WHERE id=$1", user.ID)
 		require.NoError(t, err)
 	})
 }

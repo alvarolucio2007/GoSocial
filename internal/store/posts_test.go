@@ -9,15 +9,10 @@ import (
 func TestCreatePost(t *testing.T) {
 	user := &User{Username: "testCreatePost", Email: "testCreatePost@gmail.com"}
 	createUserTest(t, user)
+	post := &Post{Content: "testContent", Title: "testTitle", UserID: user.ID, Tags: nil}
+	createPostTest(t, post)
 	t.Run("create valid post with valid userID", func(t *testing.T) {
-		post := &Post{Content: "testContent", Title: "testTitle", UserID: user.ID, Tags: nil}
-		err := testStore.Posts.Create(t.Context(), post)
-		require.NoError(t, err)
-
-		var postID int64
-		err = testDB.QueryRow("SELECT id FROM posts WHERE content='testContent'").Scan(&postID)
-		require.NoError(t, err)
-		postRead, err := testStore.Posts.Read(t.Context(), postID)
+		postRead, err := testStore.Posts.Read(t.Context(), post.ID)
 		require.NoError(t, err)
 		require.Equal(t, post.Content, postRead.Content)
 		require.Equal(t, post.Title, postRead.Title)
@@ -29,9 +24,9 @@ func TestCreatePost(t *testing.T) {
 		require.Error(t, err)
 	})
 	t.Cleanup(func() {
-		_, err := testDB.Exec("DELETE FROM posts WHERE id=1")
+		_, err := testDB.Exec("DELETE FROM posts WHERE id=$1", post.ID)
 		require.NoError(t, err)
-		_, err = testDB.Exec("DELETE FROM users WHERE email='testCreatePost@gmail.com'")
+		_, err = testDB.Exec("DELETE FROM users WHERE id=$1", user.ID)
 		require.NoError(t, err)
 	})
 }
@@ -60,6 +55,12 @@ func TestUpdatePost(t *testing.T) {
 		err := testStore.Posts.Update(t.Context(), postUpdated)
 		require.Error(t, err)
 	})
+	t.Cleanup(func() {
+		_, err := testDB.Exec("DELETE FROM posts WHERE id=$1", post.ID)
+		require.NoError(t, err)
+		_, err = testDB.Exec("DELETE FROM users WHERE id=$1", user.ID)
+		require.NoError(t, err)
+	})
 }
 
 func TestDeletePost(t *testing.T) {
@@ -78,5 +79,9 @@ func TestDeletePost(t *testing.T) {
 	t.Run("deletion of an invalid post", func(t *testing.T) {
 		err := testStore.Posts.Delete(t.Context(), post.ID)
 		require.ErrorIs(t, err, ErrPostNotFound)
+	})
+	t.Cleanup(func() {
+		_, err := testDB.Exec("DELETE FROM users WHERE id=$1", user.ID)
+		require.NoError(t, err)
 	})
 }
