@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"log"
 	"time"
 )
@@ -33,6 +34,8 @@ type CommentRepository interface {
 	Create(context.Context, *Comment) error
 }
 
+var ErrNoContent = errors.New("no content")
+
 func (s *CommentStore) Create(ctx context.Context, comment *Comment) error {
 	query := `INSERT INTO comments (post_id,user_id,content)
 	VALUES ($1,$2,$3)
@@ -40,10 +43,12 @@ func (s *CommentStore) Create(ctx context.Context, comment *Comment) error {
 	`
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeout)
 	defer cancel()
-	err := s.db.QueryRowContext(ctx, query, comment.PostID, comment.UserID, comment.Content).Scan(
+	if comment.Content == "" {
+		return ErrNoContent
+	}
+	if err := s.db.QueryRowContext(ctx, query, comment.PostID, comment.UserID, comment.Content).Scan(
 		&comment.ID, &comment.CreatedAt,
-	)
-	if err != nil {
+	); err != nil {
 		return err
 	}
 	return nil
