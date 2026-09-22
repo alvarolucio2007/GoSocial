@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.1.0](https://github.com/alvarolucio2007/GoSocial/compare/v3.0.2...v3.1.0) (2026-09-22)
+
+
+### Features
+
+* Adding foreign key constraint to comments post and user id ([db8eb0e](https://github.com/alvarolucio2007/GoSocial/commit/db8eb0e4ce0eb3b746e90b14c7259c898072e7ce))
+* Adding new ErrNoContent, where there's no content detected. ([a7c2f34](https://github.com/alvarolucio2007/GoSocial/commit/a7c2f3427bd94a165ad623313921b1ae4f974758))
+
 ## [3.0.2](https://github.com/alvarolucio2007/GoSocial/compare/v3.0.1...v3.0.2) (2026-09-21)
 
 
