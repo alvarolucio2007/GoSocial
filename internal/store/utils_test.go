@@ -109,6 +109,6 @@ func createUserTest(t *testing.T, user *User) {
 func createPostTest(t *testing.T, post *Post) {
 	err := testStore.Posts.Create(t.Context(), post)
 	require.NoError(t, err)
-	err = testDB.QueryRowContext(t.Context(), "SELECT id FROM posts WHERE title=$1", post.Title).Scan(&post.ID)
+	err = testDB.QueryRowContext(t.Context(), "SELECT id FROM posts WHERE (user_id,title,content) = ($1,$2,$3)", post.UserID, post.Title, post.Content).Scan(&post.ID)
 	require.NoError(t, err)
 }
