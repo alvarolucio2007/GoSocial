@@ -16,7 +16,7 @@ import (
 func TestCreatePostHandler(t *testing.T) {
 	app := newTestApplication(t)
 	mux := app.mount()
-	user := store.User{ID: 1, Username: "test", Email: "test@gmail.com"}
+	user := store.User{Username: "test", Email: "test@gmail.com"}
 	err := app.storage.Users.Create(context.Background(), nil, &user)
 	require.NoError(t, err)
 
@@ -36,7 +36,7 @@ func TestCreatePostHandler(t *testing.T) {
 		req, err := http.NewRequest(http.MethodPost, "/v1/posts", bytes.NewBuffer(jsonBody))
 		require.NoError(t, err)
 
-		claimsToken, err := auth.NewClaims("test@gmail.com", 10*time.Second, 1)
+		claimsToken, err := auth.NewClaims("test@gmail.com", 10*time.Second, user.ID)
 		require.NoError(t, err)
 		testToken, err := app.authenticator.CreateToken(*claimsToken)
 		require.NoError(t, err)
@@ -63,7 +63,7 @@ func TestCreatePostHandler(t *testing.T) {
 		req, err := http.NewRequest(http.MethodPost, "/v1/posts", bytes.NewBuffer(jsonBody))
 		require.NoError(t, err)
 
-		claimsToken, err := auth.NewClaims("test@gmail.com", 10*time.Second, 1)
+		claimsToken, err := auth.NewClaims("test@gmail.com", 10*time.Second, user.ID)
 		require.NoError(t, err)
 		testToken, err := app.authenticator.CreateToken(*claimsToken)
 		require.NoError(t, err)
@@ -77,10 +77,10 @@ func TestCreatePostHandler(t *testing.T) {
 func TestReadPostHandler(t *testing.T) {
 	app := newTestApplication(t)
 	mux := app.mount()
-	user := store.User{ID: 1, Username: "test", Email: "test@gmail.com"}
+	user := store.User{Username: "test", Email: "test@gmail.com"}
 	err := app.storage.Users.Create(context.Background(), nil, &user)
 	require.NoError(t, err)
-	post := store.Post{ID: 1, Content: "test", Title: "Test", UserID: 1, Tags: []string{}, User: user, Comments: []store.Comment{{ID: 1, PostID: 1, UserID: 1, Content: "Test"}, {ID: 2, PostID: 2, Content: "Test2", UserID: 1}}}
+	post := store.Post{ID: 1, Content: "test", Title: "Test", UserID: user.ID, Tags: []string{}, User: user, Comments: []store.Comment{{ID: 1, PostID: 1, UserID: user.ID, Content: "Test"}, {ID: 2, PostID: 2, Content: "Test2", UserID: user.ID}}}
 	err = app.storage.Posts.Create(context.Background(), &post)
 	require.NoError(t, err)
 	t.Run("should not allow unauthenticated access", func(t *testing.T) {
@@ -94,7 +94,7 @@ func TestReadPostHandler(t *testing.T) {
 		req, err := http.NewRequest(http.MethodGet, "/v1/posts/1", nil)
 		require.NoError(t, err)
 
-		claimsToken, err := auth.NewClaims("test@gmail.com", 10*time.Second, 1)
+		claimsToken, err := auth.NewClaims("test@gmail.com", 10*time.Second, user.ID)
 		require.NoError(t, err)
 		testToken, err := app.authenticator.CreateToken(*claimsToken)
 		require.NoError(t, err)
@@ -138,7 +138,7 @@ func TestUpdatePostHandler(t *testing.T) {
 		req, err := http.NewRequest(http.MethodPut, "/v1/posts/1", bytes.NewBuffer(jsonBody))
 		require.NoError(t, err)
 
-		claimsToken, err := auth.NewClaims("test@gmail.com", 10*time.Second, 1)
+		claimsToken, err := auth.NewClaims("test@gmail.com", 10*time.Second, user.ID)
 		require.NoError(t, err)
 		testToken, err := app.authenticator.CreateToken(*claimsToken)
 		require.NoError(t, err)
@@ -165,7 +165,7 @@ func TestUpdatePostHandler(t *testing.T) {
 		req, err := http.NewRequest(http.MethodPut, "/v1/posts/1", bytes.NewBuffer(jsonBody))
 		require.NoError(t, err)
 
-		claimsToken, err := auth.NewClaims("test@gmail.com", 10*time.Second, 1)
+		claimsToken, err := auth.NewClaims("test@gmail.com", 10*time.Second, user.ID)
 		require.NoError(t, err)
 		testToken, err := app.authenticator.CreateToken(*claimsToken)
 		require.NoError(t, err)
@@ -203,7 +203,7 @@ func TestDeletePostHandler(t *testing.T) {
 		require.Equal(t, http.StatusUnauthorized, rr.Code)
 	})
 	t.Run("should delete post with authenticated request", func(t *testing.T) {
-		claimsToken, err := auth.NewClaims("test@gmail.com", 10*time.Second, 1)
+		claimsToken, err := auth.NewClaims("test@gmail.com", 10*time.Second, user.ID)
 		require.NoError(t, err)
 		testToken, err := app.authenticator.CreateToken(*claimsToken)
 		require.NoError(t, err)
@@ -221,7 +221,7 @@ func TestDeletePostHandler(t *testing.T) {
 		err = app.storage.Posts.Create(context.Background(), &post)
 		require.NoError(t, err)
 
-		claimsToken, err := auth.NewClaims("test@gmail.com", 10*time.Second, 1)
+		claimsToken, err := auth.NewClaims("test@gmail.com", 10*time.Second, user.ID)
 		require.NoError(t, err)
 		testToken, err := app.authenticator.CreateToken(*claimsToken)
 		require.NoError(t, err)
