@@ -1,10 +1,9 @@
-package cache_test
+package cache
 
 import (
 	"testing"
 
 	"github.com/alvarolucio2007/GoSocial/internal/store"
-	"github.com/alvarolucio2007/GoSocial/internal/store/cache"
 )
 
 func TestRedisUserCache_Set(t *testing.T) {
@@ -23,8 +22,7 @@ func TestRedisUserCache_Set(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var r cache.Storage
-			gotErr := r.Users.Set(t.Context(), tt.user)
+			gotErr := testCache.Users.Set(t.Context(), tt.user)
 			if gotErr != nil {
 				if !tt.wantErr {
 					t.Errorf("Set() failed: %v", gotErr)
