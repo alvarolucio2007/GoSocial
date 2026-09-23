@@ -11,7 +11,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/alvarolucio2007/GoSocial/docs" // required to generate swagger docs
+	"github.com/alvarolucio2007/GoSocial/docs"
 	"github.com/alvarolucio2007/GoSocial/internal/auth"
 	"github.com/alvarolucio2007/GoSocial/internal/env"
 	"github.com/alvarolucio2007/GoSocial/internal/mailer"
