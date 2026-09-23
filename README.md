@@ -11,8 +11,8 @@ API REST para fórum desenvolvida em Go, com arquitetura baseada em hexagonal, a
 |--------|------------|
 | Linguagem | Go 1.27 |
 | Roteamento | chi |
-| Banco de Dados | PostgreSQL 17 |
-| Cache | Redis 7 |
+| Banco de Dados | PostgreSQL 18 |
+| Cache | Redis 8 |
 | Autenticação | PASETO v2 (local) |
 | Hash de Senha | Argon2id |
 | Logging | zap |
