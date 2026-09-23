@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"testing"
 
 	goRedis "github.com/redis/go-redis/v9"
@@ -51,7 +52,7 @@ func setupTestCache() (*goRedis.Client, *redis.RedisContainer, error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	rdb := New(connStr, "", 0)
+	rdb := New(strings.TrimPrefix(connStr, "redis://"), "", 0)
 	if rdb == nil {
 		return nil, nil, fmt.Errorf("rdb is nil at setupTestCache")
 	}
