@@ -55,7 +55,7 @@ func setupTestDB() (*sql.DB, *postgres.PostgresContainer, error) {
 	ctx := context.Background()
 
 	pgContainer, err := postgres.Run(ctx,
-		"postgres:17-alpine",
+		"postgres:18-alpine",
 		postgres.WithDatabase("gosocial_test"),
 		postgres.WithUsername("user"),
 		postgres.WithPassword("pass"),
